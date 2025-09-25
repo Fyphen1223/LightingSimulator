@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lighting Simulator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>舞台照明シミュレーター</h1>
+      <p>正面の 3D 風ステージでライティングバランスをイメージできます。</p>
+    </header>
+
+    <main class="scene" aria-label="ステージ正面図">
+      <div class="stage-frame">
+        <div class="stage-perspective">
+          <div class="stage-wall">
+            <div class="wall-panel wall-panel--left"></div>
+            <div class="wall-panel wall-panel--right"></div>
+            <div class="horizon horizon--upper horizon--left"></div>
+            <div class="horizon horizon--upper horizon--right"></div>
+            <div class="horizon horizon--lower horizon--left"></div>
+            <div class="horizon horizon--lower horizon--right"></div>
+            <div class="backlight backlight--ambient"></div>
+          </div>
+
+          <div class="stage-floor">
+            <div class="floor-glow floor-glow--left"></div>
+            <div class="floor-glow floor-glow--right"></div>
+            <div class="footlights">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="stage-border"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <small>&copy; 2025 LightingSimulator</small>
+    </footer>
+  </body>
+</html>
