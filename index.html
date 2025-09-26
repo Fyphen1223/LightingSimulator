@@ -3,46 +3,556 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lighting Simulator</title>
+    <title>照明シミュレーター</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="app-header">
-      <h1>舞台照明シミュレーター</h1>
-      <p>正面の 3D 風ステージでライティングバランスをイメージできます。</p>
-    </header>
-
-    <main class="scene" aria-label="ステージ正面図">
-      <div class="stage-frame">
-        <div class="stage-perspective">
-          <div class="stage-wall">
-            <div class="wall-panel wall-panel--left"></div>
-            <div class="wall-panel wall-panel--right"></div>
-            <div class="horizon horizon--upper horizon--left"></div>
-            <div class="horizon horizon--upper horizon--right"></div>
-            <div class="horizon horizon--lower horizon--left"></div>
-            <div class="horizon horizon--lower horizon--right"></div>
-            <div class="backlight backlight--ambient"></div>
+    <div class="scene">
+      <div id="stage">
+        <div class="floor">
+          <div class="spotlight" id="left-spotlight"></div>
+          <div class="spotlight" id="center-spotlight"></div>
+          <div class="spotlight" id="right-spotlight"></div>
+        </div>
+        <!-- 舞台奥のライト（床から独立、横一列30個、観客席向け） -->
+        <div class="back-lights-container">
+          <div class="light-row">
+            <div class="back-light" id="light-1" data-group="1"></div>
+            <div class="back-light" id="light-2" data-group="2"></div>
+            <div class="back-light" id="light-3" data-group="3"></div>
+            <div class="back-light" id="light-4" data-group="1"></div>
+            <div class="back-light" id="light-5" data-group="2"></div>
+            <div class="back-light" id="light-6" data-group="3"></div>
+            <div class="back-light" id="light-7" data-group="1"></div>
+            <div class="back-light" id="light-8" data-group="2"></div>
+            <div class="back-light" id="light-9" data-group="3"></div>
+            <div class="back-light" id="light-10" data-group="1"></div>
+            <div class="back-light" id="light-11" data-group="2"></div>
+            <div class="back-light" id="light-12" data-group="3"></div>
+            <div class="back-light" id="light-13" data-group="1"></div>
+            <div class="back-light" id="light-14" data-group="2"></div>
+            <div class="back-light" id="light-15" data-group="3"></div>
+            <div class="back-light" id="light-16" data-group="1"></div>
+            <div class="back-light" id="light-17" data-group="2"></div>
+            <div class="back-light" id="light-18" data-group="3"></div>
+            <div class="back-light" id="light-19" data-group="1"></div>
+            <div class="back-light" id="light-20" data-group="2"></div>
+            <div class="back-light" id="light-21" data-group="3"></div>
+            <div class="back-light" id="light-22" data-group="1"></div>
+            <div class="back-light" id="light-23" data-group="2"></div>
+            <div class="back-light" id="light-24" data-group="3"></div>
+            <div class="back-light" id="light-25" data-group="1"></div>
+            <div class="back-light" id="light-26" data-group="2"></div>
+            <div class="back-light" id="light-27" data-group="3"></div>
+            <div class="back-light" id="light-28" data-group="1"></div>
+            <div class="back-light" id="light-29" data-group="2"></div>
+            <div class="back-light" id="light-30" data-group="3"></div>
           </div>
-
-          <div class="stage-floor">
-            <div class="floor-glow floor-glow--left"></div>
-            <div class="floor-glow floor-glow--right"></div>
-            <div class="footlights">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </div>
-
-          <div class="stage-border"></div>
+        </div>
+        <div class="back-wall">
+          <div class="horizon-light" id="upper-left-horizon"></div>
+          <div class="horizon-light" id="upper-right-horizon"></div>
+          <div class="horizon-light" id="lower-left-horizon"></div>
+          <div class="horizon-light" id="lower-right-horizon"></div>
         </div>
       </div>
-    </main>
+    </div>
 
-    <footer class="app-footer">
-      <small>&copy; 2025 LightingSimulator</small>
-    </footer>
+    <div class="controls">
+      <!-- Master & Chase Control -->
+      <div class="master-section">
+        <h3>Master & Chase Control</h3>
+        <div class="master-controls">
+          <div class="control-group">
+            <label for="master-fader">Master:</label>
+            <input
+              type="range"
+              id="master-fader"
+              min="0"
+              max="100"
+              value="100"
+              step="1"
+            />
+            <span id="master-value">100%</span>
+          </div>
+          <div class="control-group">
+            <label for="chase-fader">Chase:</label>
+            <input
+              type="range"
+              id="chase-fader"
+              min="0"
+              max="100"
+              value="0"
+              step="1"
+              disabled
+            />
+            <span id="chase-value">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>舞台奥ライト（観客席向け）</h3>
+
+      <!-- グループ1制御 -->
+      <div class="control-section">
+        <h4>グループ1（3の倍数）</h4>
+        <div class="control-group">
+          <label for="group1-intensity">強さ:</label>
+          <input
+            type="range"
+            id="group1-intensity"
+            min="0"
+            max="100"
+            value="0"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group1-red">Red:</label>
+          <input
+            type="range"
+            id="group1-red"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group1-green">Green:</label>
+          <input
+            type="range"
+            id="group1-green"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group1-blue">Blue:</label>
+          <input
+            type="range"
+            id="group1-blue"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- グループ2制御 -->
+      <div class="control-section">
+        <h4>グループ2</h4>
+        <div class="control-group">
+          <label for="group2-intensity">強さ:</label>
+          <input
+            type="range"
+            id="group2-intensity"
+            min="0"
+            max="100"
+            value="0"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group2-red">Red:</label>
+          <input
+            type="range"
+            id="group2-red"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group2-green">Green:</label>
+          <input
+            type="range"
+            id="group2-green"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group2-blue">Blue:</label>
+          <input
+            type="range"
+            id="group2-blue"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- グループ3制御 -->
+      <div class="control-section">
+        <h4>グループ3</h4>
+        <div class="control-group">
+          <label for="group3-intensity">強さ:</label>
+          <input
+            type="range"
+            id="group3-intensity"
+            min="0"
+            max="100"
+            value="0"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group3-red">Red:</label>
+          <input
+            type="range"
+            id="group3-red"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group3-green">Green:</label>
+          <input
+            type="range"
+            id="group3-green"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="group3-blue">Blue:</label>
+          <input
+            type="range"
+            id="group3-blue"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <h3>スポットライト（白光）</h3>
+
+      <!-- 左スポットライト -->
+      <div class="control-section">
+        <h4>左スポットライト</h4>
+        <div class="control-group">
+          <label for="left-size">サイズ:</label>
+          <input
+            type="range"
+            id="left-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="left-intensity">強さ:</label>
+          <input
+            type="range"
+            id="left-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 中央スポットライト -->
+      <div class="control-section">
+        <h4>中央スポットライト</h4>
+        <div class="control-group">
+          <label for="center-size">サイズ:</label>
+          <input
+            type="range"
+            id="center-size"
+            min="50"
+            max="400"
+            value="200"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="center-intensity">強さ:</label>
+          <input
+            type="range"
+            id="center-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 右スポットライト -->
+      <div class="control-section">
+        <h4>右スポットライト</h4>
+        <div class="control-group">
+          <label for="right-size">サイズ:</label>
+          <input
+            type="range"
+            id="right-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="right-intensity">強さ:</label>
+          <input
+            type="range"
+            id="right-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <h3>ホリゾントライト（カラー）</h3>
+
+      <!-- アッパーホリゾント -->
+      <div class="control-section">
+        <h4>アッパーホリゾント</h4>
+        <div class="control-group">
+          <label for="upper-left-intensity">左側強さ:</label>
+          <input
+            type="range"
+            id="upper-left-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-left-red">左側 Red:</label>
+          <input
+            type="range"
+            id="upper-left-red"
+            min="0"
+            max="255"
+            value="74"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-left-green">左側 Green:</label>
+          <input
+            type="range"
+            id="upper-left-green"
+            min="0"
+            max="255"
+            value="144"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-left-blue">左側 Blue:</label>
+          <input
+            type="range"
+            id="upper-left-blue"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-right-intensity">右側強さ:</label>
+          <input
+            type="range"
+            id="upper-right-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-right-red">右側 Red:</label>
+          <input
+            type="range"
+            id="upper-right-red"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-right-green">右側 Green:</label>
+          <input
+            type="range"
+            id="upper-right-green"
+            min="0"
+            max="255"
+            value="74"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="upper-right-blue">右側 Blue:</label>
+          <input
+            type="range"
+            id="upper-right-blue"
+            min="0"
+            max="255"
+            value="144"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- ロワーホリゾント -->
+      <div class="control-section">
+        <h4>ロワーホリゾント</h4>
+        <div class="control-group">
+          <label for="lower-left-intensity">左側強さ:</label>
+          <input
+            type="range"
+            id="lower-left-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-left-red">左側 Red:</label>
+          <input
+            type="range"
+            id="lower-left-red"
+            min="0"
+            max="255"
+            value="144"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-left-green">左側 Green:</label>
+          <input
+            type="range"
+            id="lower-left-green"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-left-blue">左側 Blue:</label>
+          <input
+            type="range"
+            id="lower-left-blue"
+            min="0"
+            max="255"
+            value="74"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-right-intensity">右側強さ:</label>
+          <input
+            type="range"
+            id="lower-right-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-right-red">右側 Red:</label>
+          <input
+            type="range"
+            id="lower-right-red"
+            min="0"
+            max="255"
+            value="255"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-right-green">右側 Green:</label>
+          <input
+            type="range"
+            id="lower-right-green"
+            min="0"
+            max="255"
+            value="144"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="lower-right-blue">右側 Blue:</label>
+          <input
+            type="range"
+            id="lower-right-blue"
+            min="0"
+            max="255"
+            value="74"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- ステージカラー -->
+      <h3>ステージカラー（光の三原色）</h3>
+
+      <!-- 床の色 -->
+      <div class="control-section">
+        <h4>床の色</h4>
+        <div class="control-group">
+          <label for="floor-red">Red:</label>
+          <input
+            type="range"
+            id="floor-red"
+            min="0"
+            max="255"
+            value="0"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="floor-green">Green:</label>
+          <input
+            type="range"
+            id="floor-green"
+            min="0"
+            max="255"
+            value="0"
+            step="1"
+          />
+        </div>
+        <div class="control-group">
+          <label for="floor-blue">Blue:</label>
+          <input
+            type="range"
+            id="floor-blue"
+            min="0"
+            max="255"
+            value="0"
+            step="1"
+          />
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
   </body>
 </html>

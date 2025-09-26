@@ -1,304 +1,455 @@
 :root {
-  color-scheme: dark;
-  --bg-color: #060912;
-  --fg-primary: #f5f7ff;
-  --fg-muted: #9aa7d0;
-  --accent: #6ad9ff;
-  --wall-dark: #1b1f3d;
-  --wall-light: #2c356a;
-  --floor-base: #1c1329;
-  --floor-highlight: rgba(199, 118, 255, 0.2);
-  --upper-horizon-left: rgba(88, 172, 255, 0.75);
-  --upper-horizon-right: rgba(255, 121, 241, 0.78);
-  --lower-horizon-left: rgba(255, 189, 113, 0.85);
-  --lower-horizon-right: rgba(109, 255, 199, 0.85);
-  --ambient-backlight: rgba(160, 180, 255, 0.35);
-  --footlight: rgba(255, 255, 255, 0.9);
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+  /* ステージの色を制御するCSS変数 */
+  --floor-color: rgb(0, 0, 0); /* 初期値：黒 */
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at 20% 15%, #1a2344, #03040d 70%);
-  color: var(--fg-primary);
-  display: flex;
-  flex-direction: column;
-  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-}
-
-.app-header,
-.app-footer {
-  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.5rem, 5vw, 4rem);
-  background: rgba(5, 7, 15, 0.65);
-  backdrop-filter: blur(14px);
-}
-
-.app-header h1 {
-  margin: 0 0 0.35rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.app-header p {
-  margin: 0;
-  color: var(--fg-muted);
-}
-
-.app-footer {
-  color: var(--fg-muted);
-  text-align: center;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  background-color: #1a1a1a;
+  color: #eee;
+  font-family: sans-serif;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .scene {
-  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  perspective: 1500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#stage {
+  width: 90%;
+  height: 90%;
+  max-width: 800px;
+  max-height: 450px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(-15deg) translateZ(-150px);
+  aspect-ratio: 16/9;
+}
+
+.floor {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #333; /* ベースの床色 */
+  border: 1px solid #666;
+  transform: rotateX(90deg) translateZ(-200px);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+  position: relative; /* スポットライトの基準点にする */
+}
+
+/* 床の色オーバーレイ（ボケ効果付き） */
+.floor::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--floor-color);
+  filter: blur(6px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.back-wall {
+  position: absolute;
+  width: 109%;
+  height: 100%;
+  background-color: #333;
+  border: 1px solid #666;
+  transform: translateZ(-400px) translateY(-95%) translateX(-4%);
+  background: linear-gradient(to top, #222, #444);
+}
+
+.spotlight {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform-origin: center;
+  pointer-events: none; /* 操作の邪魔にならないように */
+}
+
+/* 舞台奥のライト（back-wall近くの床面） */
+.back-lights-container {
+  position: absolute;
+  bottom: 5px; /* 舞台の床面下端から少し上 */
+  left: 50%;
+  width: 80%;
+  transform: translateX(-50%) translateZ(-300px);
+  transform-style: preserve-3d;
+  z-index: 12;
+  /* 連続した四角いフレーム */
+  background: linear-gradient(
+    to right,
+    #333 0%,
+    #333 33.33%,
+    #444 33.33%,
+    #444 66.66%,
+    #333 66.66%,
+    #333 100%
+  );
+  border: 2px solid #555;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.light-row {
+  display: flex;
+  gap: 2px; /* 四角いボックス間の小さなギャップ */
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding: 5px;
+}
+
+.back-light {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  max-width: 20px;
+  max-height: 20px;
+  aspect-ratio: 1/1;
+  box-sizing: border-box;
+  background: radial-gradient(
+    circle at 30% 30%,
+    #444 0%,
+    #333 40%,
+    #222 70%,
+    #111 100%
+  );
+  border: 1px solid #666;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  transform-style: preserve-3d;
+  transform: none;
+  flex-shrink: 0;
+  /* 四角いボックス内に配置（marginを削除） */
+}
+
+/* 各ライトの四角いボックス（小さく、立体感あり） */
+.back-light::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #777;
+  background: linear-gradient(135deg, #444, #222, #111);
+  z-index: -1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+}
+
+/* 立体的なライト外観（真円） */
+.back-light::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.back-light::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 20px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  transform: translateX(-50%) rotateX(90deg);
+  filter: blur(2px);
+}
+
+/* 観客席向けの立体的光線効果 */
+.back-light.active {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.95) 15%,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0.5) 70%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    /* 内側の光 */ inset 0 3px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -3px 6px rgba(255, 255, 255, 0.4),
+    /* 外側の強い発光 */ 0 0 20px rgba(255, 255, 255, 1),
+    0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.6),
+    0 0 80px rgba(255, 255, 255, 0.4),
+    /* 観客席への超強い光線 */ 0 500px 350px rgba(255, 255, 255, 0.25),
+    0 400px 250px rgba(255, 255, 255, 0.18),
+    0 300px 200px rgba(255, 255, 255, 0.12),
+    /* 前方への強力光円錐 */ 0 600px 400px rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px) scale(1.25);
+}
+
+.back-light.active::before {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.9) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  width: 12px;
+  height: 12px;
+}
+
+.back-light.active::after {
+  background: rgba(255, 255, 255, 0.3);
+  filter: blur(4px);
+}
+
+/* ホリゾントライト */
+.horizon-light {
+  position: absolute;
+  pointer-events: none;
+  filter: blur(8px);
+  opacity: 0.8;
+}
+
+#upper-left-horizon {
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+      to right,
+      rgba(74, 144, 255, 0.5) 0%,
+      rgba(74, 144, 255, 0.5) 70%,
+      rgba(74, 144, 255, 0) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(74, 144, 255, 0.5) 0%,
+      rgba(74, 144, 255, 0) 100%
+    );
+}
+
+#upper-right-horizon {
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+      to left,
+      rgba(255, 74, 144, 0.5) 0%,
+      rgba(255, 74, 144, 0.5) 70%,
+      rgba(255, 74, 144, 0) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 74, 144, 0.5) 0%,
+      rgba(255, 74, 144, 0) 100%
+    );
+}
+
+#lower-left-horizon {
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+      to right,
+      rgba(144, 255, 74, 0.3) 0%,
+      rgba(144, 255, 74, 0.3) 70%,
+      rgba(144, 255, 74, 0) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(144, 255, 74, 0.3) 0%,
+      rgba(144, 255, 74, 0) 100%
+    );
+}
+
+#lower-right-horizon {
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+      to left,
+      rgba(255, 144, 74, 0.3) 0%,
+      rgba(255, 144, 74, 0.3) 70%,
+      rgba(255, 144, 74, 0) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(255, 144, 74, 0.3) 0%,
+      rgba(255, 144, 74, 0) 100%
+    );
+}
+
+.controls {
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  background-color: #282828;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+}
+
+.master-section {
+  grid-column: 1 / -1;
+  background-color: #444;
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid #666;
+  margin-bottom: 10px;
+}
+
+.master-section h3 {
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #fff;
+  font-size: 1.1em;
+  border-bottom: 2px solid #888;
+  padding-bottom: 5px;
+}
+
+.master-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.master-section .control-group {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: clamp(1.5rem, 4vw, 4rem);
+  gap: 10px;
 }
 
-.stage-frame {
-  width: min(960px, 92vw);
-  perspective: 1300px;
+.master-section label {
+  font-weight: bold;
+  color: #fff;
+  font-size: 1em;
+  min-width: 60px;
 }
 
-.stage-perspective {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  transform-style: preserve-3d;
-  border-radius: 24px;
-  overflow: hidden;
-  background: radial-gradient(
-    circle at center,
-    rgba(32, 37, 72, 0.7),
-    rgba(6, 9, 18, 0.95)
-  );
-  box-shadow: 0 45px 120px rgba(2, 5, 12, 0.75);
+#master-value,
+#chase-value {
+  color: #fff;
+  font-weight: bold;
+  font-size: 1em;
+  min-width: 45px;
+  text-align: center;
 }
 
-.stage-wall {
-  position: absolute;
-  inset: 6% 10% 38%;
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--wall-light), var(--wall-dark) 70%);
-  transform: translateZ(-160px);
-  overflow: hidden;
+#chase-fader:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.wall-panel {
-  position: absolute;
-  top: -4%;
-  width: 45%;
-  height: 110%;
-  background: linear-gradient(
-    180deg,
-    rgba(74, 82, 138, 0.15),
-    rgba(7, 9, 20, 0.85)
-  );
-  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.45));
+.controls h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #fff;
+  font-size: 1.2em;
+  border-bottom: 2px solid #444;
+  padding-bottom: 5px;
 }
 
-.wall-panel--left {
-  left: -18%;
-  transform-origin: right center;
-  transform: rotateY(30deg) translateZ(-40px);
+.control-section {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #444;
 }
 
-.wall-panel--right {
-  right: -18%;
-  transform-origin: left center;
-  transform: rotateY(-30deg) translateZ(-40px);
+.control-section h4 {
+  margin: 0 0 10px 0;
+  color: #fff;
+  font-size: 1em;
+  text-align: center;
+  border-bottom: 1px solid #555;
+  padding-bottom: 5px;
 }
 
-.backlight--ambient {
-  position: absolute;
-  inset: 12% 18%;
-  border-radius: 50px;
-  background: radial-gradient(
-    circle at 50% 20%,
-    rgba(255, 255, 255, 0.18),
-    rgba(61, 86, 210, 0) 70%
-  );
-  mix-blend-mode: screen;
-  filter: blur(12px);
-}
-
-.horizon {
-  position: absolute;
-  width: 52%;
-  height: 20%;
-  border-radius: 18px;
-  filter: blur(0.6px) saturate(120%);
-  mix-blend-mode: screen;
-}
-
-.horizon--upper {
-  top: 12%;
-  box-shadow: 0 16px 40px rgba(95, 175, 255, 0.35);
-}
-
-.horizon--lower {
-  top: 38%;
-  box-shadow: 0 22px 50px rgba(255, 204, 136, 0.35);
-}
-
-.horizon--left {
-  left: -2%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--upper-horizon-left) 45%,
-    rgba(255, 255, 255, 0.15) 100%
-  );
-}
-
-.horizon--right {
-  right: -2%;
-  background: linear-gradient(
-    270deg,
-    transparent 0%,
-    var(--upper-horizon-right) 45%,
-    rgba(255, 255, 255, 0.15) 100%
-  );
-}
-
-.horizon--lower.horizon--left {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--lower-horizon-left) 55%,
-    rgba(255, 255, 255, 0.18) 100%
-  );
-}
-
-.horizon--lower.horizon--right {
-  background: linear-gradient(
-    270deg,
-    transparent 0%,
-    var(--lower-horizon-right) 55%,
-    rgba(255, 255, 255, 0.18) 100%
-  );
-}
-
-.stage-floor {
-  position: absolute;
-  left: -6%;
-  right: -6%;
-  height: 68%;
-  bottom: -30%;
-  background: radial-gradient(
-      circle at 50% 35%,
-      var(--floor-highlight),
-      rgba(0, 0, 0, 0) 70%
-    ),
-    radial-gradient(
-      circle at 25% 35%,
-      rgba(109, 255, 199, 0.15),
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at 75% 35%,
-      rgba(255, 121, 241, 0.18),
-      transparent 55%
-    ),
-    linear-gradient(180deg, rgba(36, 18, 44, 0.95), rgba(12, 6, 18, 0.95));
-  border-radius: 32px;
-  transform-origin: top center;
-  transform: rotateX(74deg) translateZ(-40px);
-  box-shadow: inset 0 45px 120px rgba(0, 0, 0, 0.8),
-    0 20px 80px rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-}
-
-.floor-glow {
-  position: absolute;
-  width: 40%;
-  height: 45%;
-  bottom: 18%;
-  filter: blur(18px);
-  mix-blend-mode: screen;
-}
-
-.floor-glow--left {
-  left: 6%;
-  background: radial-gradient(
-    circle at center,
-    rgba(109, 255, 199, 0.35),
-    transparent 65%
-  );
-}
-
-.floor-glow--right {
-  right: 6%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 121, 241, 0.35),
-    transparent 65%
-  );
-}
-
-.footlights {
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 8%;
+.control-group {
   display: flex;
-  justify-content: space-between;
-  transform: translateZ(20px);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
 
-.footlights span {
+.control-group label {
+  font-weight: bold;
+  color: #ccc;
+  font-size: 0.9em;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #444;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--footlight);
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8),
-    0 0 45px rgba(255, 214, 160, 0.75);
-  opacity: 0.9;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.stage-border {
-  position: absolute;
-  inset: auto 8% 12%;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    rgba(109, 255, 199, 0.45),
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 121, 241, 0.45)
-  );
-  transform: translateZ(10px);
-  border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-@media (max-width: 720px) {
-  .app-header,
-  .app-footer {
-    padding-inline: clamp(1rem, 6vw, 2.5rem);
-  }
-
-  .stage-frame {
-    width: min(100%, 92vw);
-  }
-
-  .stage-wall {
-    inset: 8% 8% 42%;
-  }
-
-  .stage-floor {
-    bottom: -36%;
-  }
-
-  .footlights span {
-    width: 14px;
-    height: 14px;
-  }
+input[type="color"] {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
