@@ -7,7 +7,7 @@ body {
   margin: 0;
   height: 100vh;
   display: grid;
-  grid-template-rows: 2fr 1fr;
+  grid-template-rows: 2fr 1fr 0.8fr;
   background-color: #1a1a1a;
   color: #eee;
   font-family: sans-serif;
@@ -15,6 +15,11 @@ body {
   padding: 10px;
   box-sizing: border-box;
   overflow: hidden;
+  transition: grid-template-rows 0.3s ease;
+}
+
+body.panel-collapsed {
+  grid-template-rows: 3fr 1.5fr auto;
 }
 
 .scene {
@@ -452,4 +457,239 @@ input[type="color"] {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* パラメーター出力エリア */
+.parameter-output {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #444;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.parameter-output.collapsed {
+  max-height: 80px !important;
+  overflow: hidden !important;
+  padding-bottom: 15px !important;
+}
+
+.parameter-output.collapsed .output-content {
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.parameter-output.collapsed .output-buttons {
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.parameter-output.collapsed .output-header {
+  margin-bottom: 0 !important;
+  padding-bottom: 5px !important;
+  border-bottom: none !important;
+}
+
+.output-header {
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.output-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.toggle-panel-btn {
+  background-color: #555;
+  color: #fff;
+  border: 1px solid #777;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.toggle-panel-btn:hover {
+  background-color: #666;
+}
+
+.toggle-panel-btn:active {
+  background-color: #444;
+}
+
+.output-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.output-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.output-buttons button {
+  background-color: #444;
+  color: #eee;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.output-buttons button:hover {
+  background-color: #555;
+}
+
+.output-buttons button:active {
+  background-color: #333;
+}
+
+.output-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  flex: 1;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+  min-height: 0;
+}
+
+.output-content.collapsed {
+  grid-template-columns: 1fr 0fr;
+}
+
+.output-content.collapsed .log-section {
+  overflow: hidden;
+  width: 0;
+  opacity: 0;
+}
+
+.output-section {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.output-section h4 {
+  margin: 0 0 8px 0;
+  color: #ccc;
+  font-size: 14px;
+  border-bottom: 1px solid #555;
+  padding-bottom: 5px;
+}
+
+.log-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.log-info {
+  color: #888;
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.log-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#current-params {
+  background-color: #1a1a1a !important;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #00ff00 !important;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 100px;
+}
+
+#change-log {
+  background-color: #1a1a1a !important;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #ffff00 !important;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 100px;
+}
+
+.log-entry {
+  margin-bottom: 5px;
+  padding: 5px 8px;
+  border-left: 2px solid #666;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-entry.new {
+  border-left-color: #0f0;
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.log-entry-text {
+  flex: 1;
+  font-size: 11px;
+  word-break: break-all;
+  color: #ffff00 !important;
+}
+
+.log-entry-revert {
+  background-color: #444;
+  border: 1px solid #666;
+  border-radius: 2px;
+  padding: 2px 6px;
+  font-size: 9px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.log-entry-revert:hover {
+  background-color: #555;
+}
+
+.log-entry-revert:active {
+  background-color: #333;
 }

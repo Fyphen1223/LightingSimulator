@@ -185,9 +185,592 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // LocalStorage機能
+  const STORAGE_KEY = "lightingSimulator_settings";
+  const LOG_STORAGE_KEY = "lightingSimulator_logs";
+
+  // LocalStorageに設定を保存
+  function saveToLocalStorage() {
+    try {
+      const params = getCurrentParameters();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
+    } catch (error) {
+      console.error("LocalStorage保存エラー:", error);
+    }
+  }
+
+  // LocalStorageから設定を読み込み
+  function loadFromLocalStorage() {
+    try {
+      const savedParams = localStorage.getItem(STORAGE_KEY);
+      if (savedParams) {
+        const params = JSON.parse(savedParams);
+        return applyParametersToUI(params);
+      }
+      return false;
+    } catch (error) {
+      console.error("LocalStorage読み込みエラー:", error);
+      return false;
+    }
+  }
+
+  // 変更ログをLocalStorageに保存
+  function saveLogsToLocalStorage() {
+    try {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(changeHistory));
+    } catch (error) {
+      console.error("ログ保存エラー:", error);
+    }
+  }
+
+  // 変更ログをLocalStorageから復元
+  function loadLogsFromLocalStorage() {
+    try {
+      const savedLogs = localStorage.getItem(LOG_STORAGE_KEY);
+      if (savedLogs) {
+        changeHistory = JSON.parse(savedLogs);
+        // ログUIを復元
+        changeLogElement.innerHTML = "";
+
+        // ログコンテナのスタイルを確実に設定
+        changeLogElement.style.backgroundColor = "#1a1a1a";
+        changeLogElement.style.color = "#ffff00";
+        changeLogElement.style.border = "1px solid #555";
+
+        changeHistory.forEach((logEntry) => {
+          const logDiv = document.createElement("div");
+          logDiv.className = "log-entry";
+
+          const logText = document.createElement("span");
+          logText.className = "log-entry-text";
+          logText.textContent = `[${logEntry.time}] ${logEntry.parameter}: ${logEntry.oldValue} → ${logEntry.newValue}`;
+          logText.style.color = "#ffff00"; // 確実に黄色に設定
+
+          const revertButton = document.createElement("button");
+          revertButton.className = "log-entry-revert";
+          revertButton.textContent = "戻す";
+          revertButton.onclick = () =>
+            revertToValue(logEntry.parameter, logEntry.oldValue);
+
+          logDiv.appendChild(logText);
+          logDiv.appendChild(revertButton);
+          changeLogElement.appendChild(logDiv);
+        });
+        changeLogElement.scrollTop = changeLogElement.scrollHeight;
+      }
+    } catch (error) {
+      console.error("ログ読み込みエラー:", error);
+    }
+  }
+
+  // LocalStorageをクリア
+  function clearLocalStorage() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(LOG_STORAGE_KEY);
+    } catch (error) {
+      console.error("LocalStorageクリアエラー:", error);
+    }
+  }
+
+  // パラメーター出力機能
+  const currentParamsElement = document.getElementById("current-params");
+  const changeLogElement = document.getElementById("change-log");
+  const copyButton = document.getElementById("copy-params");
+  const importButton = document.getElementById("import-json");
+  const exportButton = document.getElementById("export-json");
+  const clearButton = document.getElementById("clear-output");
+  const toggleLogButton = document.getElementById("toggle-log");
+  const togglePanelButton = document.getElementById("toggle-panel");
+  const outputContent = document.getElementById("output-content");
+  const parameterOutput = document.querySelector(".parameter-output");
+  const fileInput = document.getElementById("file-input");
+
+  let changeHistory = [];
+  let isLogCollapsed = false;
+  let isPanelCollapsed = false;
+  let dragStates = {}; // ドラッグ状態を追跡
+
+  // 現在のパラメーターを取得
+  function getCurrentParameters() {
+    const params = {
+      master: {
+        level: masterFader.value,
+      },
+      chase: {
+        level: chaseFader.value,
+      },
+      spotlights: {
+        left: {
+          size: document.getElementById("left-size").value,
+          intensity: document.getElementById("left-intensity").value,
+        },
+        center: {
+          size: document.getElementById("center-size").value,
+          intensity: document.getElementById("center-intensity").value,
+        },
+        right: {
+          size: document.getElementById("right-size").value,
+          intensity: document.getElementById("right-intensity").value,
+        },
+      },
+      backLights: {
+        group1: {
+          intensity: document.getElementById("group1-intensity").value,
+          red: document.getElementById("group1-red").value,
+          green: document.getElementById("group1-green").value,
+          blue: document.getElementById("group1-blue").value,
+        },
+        group2: {
+          intensity: document.getElementById("group2-intensity").value,
+          red: document.getElementById("group2-red").value,
+          green: document.getElementById("group2-green").value,
+          blue: document.getElementById("group2-blue").value,
+        },
+        group3: {
+          intensity: document.getElementById("group3-intensity").value,
+          red: document.getElementById("group3-red").value,
+          green: document.getElementById("group3-green").value,
+          blue: document.getElementById("group3-blue").value,
+        },
+      },
+      horizonLights: {
+        upperLeft: {
+          intensity: document.getElementById("upper-left-intensity").value,
+          red: document.getElementById("upper-left-red").value,
+          green: document.getElementById("upper-left-green").value,
+          blue: document.getElementById("upper-left-blue").value,
+        },
+        upperRight: {
+          intensity: document.getElementById("upper-right-intensity").value,
+          red: document.getElementById("upper-right-red").value,
+          green: document.getElementById("upper-right-green").value,
+          blue: document.getElementById("upper-right-blue").value,
+        },
+        lowerLeft: {
+          intensity: document.getElementById("lower-left-intensity").value,
+          red: document.getElementById("lower-left-red").value,
+          green: document.getElementById("lower-left-green").value,
+          blue: document.getElementById("lower-left-blue").value,
+        },
+        lowerRight: {
+          intensity: document.getElementById("lower-right-intensity").value,
+          red: document.getElementById("lower-right-red").value,
+          green: document.getElementById("lower-right-green").value,
+          blue: document.getElementById("lower-right-blue").value,
+        },
+      },
+      stage: {
+        floor: {
+          red: document.getElementById("floor-red").value,
+          green: document.getElementById("floor-green").value,
+          blue: document.getElementById("floor-blue").value,
+        },
+      },
+      timestamp: new Date().toISOString(),
+    };
+    return params;
+  }
+
+  // パラメーター表示を更新
+  function updateParameterDisplay() {
+    const params = getCurrentParameters();
+    currentParamsElement.textContent = JSON.stringify(params, null, 2);
+
+    // 表示エリアのスタイルを確実に設定
+    currentParamsElement.style.backgroundColor = "#1a1a1a";
+    currentParamsElement.style.color = "#00ff00";
+    currentParamsElement.style.border = "1px solid #555";
+
+    saveToLocalStorage(); // 設定をLocalStorageに自動保存
+  }
+
+  // 変更ログに追加（戻し機能付き）
+  function addToChangeLog(inputId, oldValue, newValue) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = {
+      time: timestamp,
+      parameter: inputId,
+      oldValue: oldValue,
+      newValue: newValue,
+    };
+
+    changeHistory.push(logEntry);
+    saveLogsToLocalStorage(); // ログをLocalStorageに保存
+
+    const logDiv = document.createElement("div");
+    logDiv.className = "log-entry new";
+
+    const logText = document.createElement("span");
+    logText.className = "log-entry-text";
+    logText.textContent = `[${timestamp}] ${inputId}: ${oldValue} → ${newValue}`;
+    logText.style.color = "#ffff00"; // 確実に黄色に設定
+
+    const revertButton = document.createElement("button");
+    revertButton.className = "log-entry-revert";
+    revertButton.textContent = "戻す";
+    revertButton.onclick = () => revertToValue(inputId, oldValue);
+
+    logDiv.appendChild(logText);
+    logDiv.appendChild(revertButton);
+    changeLogElement.appendChild(logDiv);
+    changeLogElement.scrollTop = changeLogElement.scrollHeight;
+
+    // アニメーション効果を削除
+    setTimeout(() => {
+      logDiv.classList.remove("new");
+    }, 1000);
+  }
+
+  // 値を戻す機能
+  function revertToValue(inputId, value) {
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.value = value;
+
+      // 対応する更新関数を呼び出し
+      if (inputId === "master-fader") {
+        updateMasterValue();
+      } else if (inputId === "chase-fader") {
+        updateChaseValue();
+      } else if (inputId.startsWith("floor-")) {
+        updateStageColors();
+      }
+
+      updateAllLights();
+      updateParameterDisplay();
+
+      // 戻し操作もログに記録
+      addToChangeLog(inputId + " (戻し)", input.value, value);
+    }
+  }
+
+  // ログの開閉機能
+  toggleLogButton.addEventListener("click", () => {
+    isLogCollapsed = !isLogCollapsed;
+    if (isLogCollapsed) {
+      outputContent.classList.add("collapsed");
+      toggleLogButton.textContent = "ログを開く";
+    } else {
+      outputContent.classList.remove("collapsed");
+      toggleLogButton.textContent = "ログを閉じる";
+    }
+  });
+
+  // パネル全体の開閉機能
+  togglePanelButton.addEventListener("click", () => {
+    isPanelCollapsed = !isPanelCollapsed;
+    if (isPanelCollapsed) {
+      // パネルを閉じる
+      parameterOutput.classList.add("collapsed");
+      document.body.classList.add("panel-collapsed");
+      togglePanelButton.textContent = "▲ 開く";
+
+      // 確実に隠すためのスタイル設定
+      outputContent.style.display = "none";
+      document.querySelector(".output-buttons").style.display = "none";
+      parameterOutput.style.maxHeight = "80px";
+    } else {
+      // パネルを開く
+      parameterOutput.classList.remove("collapsed");
+      document.body.classList.remove("panel-collapsed");
+      togglePanelButton.textContent = "▼ 閉じる";
+
+      // 表示を復元
+      outputContent.style.display = "grid";
+      document.querySelector(".output-buttons").style.display = "flex";
+      parameterOutput.style.maxHeight = "none";
+    }
+  });
+
+  // コピー機能
+  copyButton.addEventListener("click", () => {
+    const params = getCurrentParameters();
+    navigator.clipboard.writeText(JSON.stringify(params, null, 2)).then(() => {
+      copyButton.textContent = "コピー完了!";
+      setTimeout(() => {
+        copyButton.textContent = "コピー";
+      }, 1500);
+    });
+  });
+
+  // パラメーターをUIに適用する関数
+  function applyParametersToUI(params) {
+    try {
+      // Master & Chase
+      if (params.master && params.master.level !== undefined) {
+        masterFader.value = params.master.level;
+        updateMasterValue();
+      }
+      if (params.chase && params.chase.level !== undefined) {
+        chaseFader.value = params.chase.level;
+        updateChaseValue();
+      }
+
+      // スポットライト
+      if (params.spotlights) {
+        if (params.spotlights.left) {
+          if (params.spotlights.left.size !== undefined)
+            document.getElementById("left-size").value =
+              params.spotlights.left.size;
+          if (params.spotlights.left.intensity !== undefined)
+            document.getElementById("left-intensity").value =
+              params.spotlights.left.intensity;
+        }
+        if (params.spotlights.center) {
+          if (params.spotlights.center.size !== undefined)
+            document.getElementById("center-size").value =
+              params.spotlights.center.size;
+          if (params.spotlights.center.intensity !== undefined)
+            document.getElementById("center-intensity").value =
+              params.spotlights.center.intensity;
+        }
+        if (params.spotlights.right) {
+          if (params.spotlights.right.size !== undefined)
+            document.getElementById("right-size").value =
+              params.spotlights.right.size;
+          if (params.spotlights.right.intensity !== undefined)
+            document.getElementById("right-intensity").value =
+              params.spotlights.right.intensity;
+        }
+      }
+
+      // 舞台奥ライト
+      if (params.backLights) {
+        ["group1", "group2", "group3"].forEach((group) => {
+          if (params.backLights[group]) {
+            const g = params.backLights[group];
+            if (g.intensity !== undefined)
+              document.getElementById(`${group}-intensity`).value = g.intensity;
+            if (g.red !== undefined)
+              document.getElementById(`${group}-red`).value = g.red;
+            if (g.green !== undefined)
+              document.getElementById(`${group}-green`).value = g.green;
+            if (g.blue !== undefined)
+              document.getElementById(`${group}-blue`).value = g.blue;
+          }
+        });
+      }
+
+      // ホリゾンライト
+      if (params.horizonLights) {
+        ["upperLeft", "upperRight", "lowerLeft", "lowerRight"].forEach(
+          (position) => {
+            if (params.horizonLights[position]) {
+              const h = params.horizonLights[position];
+              const prefix = position.replace(/([A-Z])/g, "-$1").toLowerCase();
+              if (h.intensity !== undefined)
+                document.getElementById(`${prefix}-intensity`).value =
+                  h.intensity;
+              if (h.red !== undefined)
+                document.getElementById(`${prefix}-red`).value = h.red;
+              if (h.green !== undefined)
+                document.getElementById(`${prefix}-green`).value = h.green;
+              if (h.blue !== undefined)
+                document.getElementById(`${prefix}-blue`).value = h.blue;
+            }
+          }
+        );
+      }
+
+      // ステージの床の色
+      if (params.stage && params.stage.floor) {
+        if (params.stage.floor.red !== undefined)
+          document.getElementById("floor-red").value = params.stage.floor.red;
+        if (params.stage.floor.green !== undefined)
+          document.getElementById("floor-green").value =
+            params.stage.floor.green;
+        if (params.stage.floor.blue !== undefined)
+          document.getElementById("floor-blue").value = params.stage.floor.blue;
+      }
+
+      // 全ての値を初期値として記録
+      document.querySelectorAll(".controls input").forEach((input) => {
+        previousValues[input.id] = input.value;
+      });
+
+      // 全ての表示を更新
+      updateStageColors();
+      updateAllLights();
+      updateParameterDisplay();
+
+      return true;
+    } catch (error) {
+      console.error("パラメーター適用エラー:", error);
+      return false;
+    }
+  }
+
+  // JSON読み込み機能
+  importButton.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const params = JSON.parse(e.target.result);
+        const success = applyParametersToUI(params);
+
+        if (success) {
+          importButton.textContent = "読込完了!";
+          addToChangeLog("JSON読込", "ファイル", file.name);
+          setTimeout(() => {
+            importButton.textContent = "JSON読込";
+          }, 2000);
+        } else {
+          importButton.textContent = "読込失敗";
+          setTimeout(() => {
+            importButton.textContent = "JSON読込";
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("JSONパースエラー:", error);
+        importButton.textContent = "形式エラー";
+        setTimeout(() => {
+          importButton.textContent = "JSON読込";
+        }, 2000);
+      }
+    };
+    reader.readAsText(file);
+
+    // ファイル選択をリセット（同じファイルを再選択可能にする）
+    fileInput.value = "";
+  });
+
+  // JSON出力機能
+  exportButton.addEventListener("click", () => {
+    const params = getCurrentParameters();
+    const dataStr = JSON.stringify(params, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `lighting_params_${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/:/g, "-")}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // クリア機能
+  clearButton.addEventListener("click", () => {
+    if (confirm("ログと保存された設定をすべてクリアしますか？")) {
+      changeLogElement.innerHTML = "";
+      changeHistory = [];
+      clearLocalStorage(); // LocalStorageもクリア
+
+      clearButton.textContent = "クリア完了!";
+      setTimeout(() => {
+        clearButton.textContent = "クリア";
+      }, 1500);
+    }
+  });
+
+  // 入力値の変更を監視（ドラッグ終了時のみログ出力）
+  let previousValues = {};
+
+  // 全ての入力コントロールにイベントリスナーを追加
+  document.querySelectorAll(".controls input").forEach((input) => {
+    // 初期値を記録
+    previousValues[input.id] = input.value;
+    dragStates[input.id] = false;
+
+    // ドラッグ開始時
+    input.addEventListener("mousedown", () => {
+      dragStates[input.id] = true;
+    });
+
+    // ドラッグ中（リアルタイム更新のみ、ログは出力しない）
+    input.addEventListener("input", () => {
+      if (input.id === "master-fader") {
+        updateMasterValue();
+      } else if (input.id === "chase-fader") {
+        updateChaseValue();
+      } else if (input.id.startsWith("floor-")) {
+        updateStageColors();
+      }
+      updateAllLights();
+      updateParameterDisplay();
+    });
+
+    // ドラッグ終了時（ログを出力）
+    input.addEventListener("mouseup", () => {
+      if (dragStates[input.id]) {
+        const oldValue = previousValues[input.id];
+        const newValue = input.value;
+
+        if (oldValue !== newValue) {
+          addToChangeLog(input.id, oldValue, newValue);
+          previousValues[input.id] = newValue;
+        }
+
+        dragStates[input.id] = false;
+      }
+    });
+
+    // フォーカスが外れた時もログを出力（キーボード操作対応）
+    input.addEventListener("blur", () => {
+      const oldValue = previousValues[input.id];
+      const newValue = input.value;
+
+      if (oldValue !== newValue) {
+        addToChangeLog(input.id, oldValue, newValue);
+        previousValues[input.id] = newValue;
+      }
+    });
+
+    // キーボードのEnterキー押下時
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        input.blur(); // blurイベントを発生させる
+      }
+    });
+  });
+
   // 初期状態を適用
-  updateMasterValue();
-  updateChaseValue();
-  updateStageColors();
-  updateAllLights();
+  // UIエレメントの初期スタイル設定（真っ暗になる問題の対策）
+  function ensureUIStyles() {
+    if (currentParamsElement) {
+      currentParamsElement.style.backgroundColor = "#1a1a1a";
+      currentParamsElement.style.color = "#00ff00";
+      currentParamsElement.style.border = "1px solid #555";
+    }
+    if (changeLogElement) {
+      changeLogElement.style.backgroundColor = "#1a1a1a";
+      changeLogElement.style.color = "#ffff00";
+      changeLogElement.style.border = "1px solid #555";
+    }
+  }
+
+  // LocalStorageから設定とログを復元
+  const hasLoadedSettings = loadFromLocalStorage();
+  loadLogsFromLocalStorage();
+
+  // UIスタイルを確実に適用
+  ensureUIStyles();
+
+  // LocalStorageに保存された設定がない場合のみデフォルト値を適用
+  if (!hasLoadedSettings) {
+    updateMasterValue();
+    updateChaseValue();
+    updateStageColors();
+    updateAllLights();
+    updateParameterDisplay();
+  } else {
+    // LocalStorageから復元した場合もUI更新は必要
+    updateMasterValue();
+    updateChaseValue();
+    updateStageColors();
+    updateAllLights();
+    updateParameterDisplay();
+  }
+
+  // 定期的にスタイルをチェック（保険として）
+  setInterval(ensureUIStyles, 5000);
 });
