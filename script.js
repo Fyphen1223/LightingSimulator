@@ -377,11 +377,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = getCurrentParameters();
     currentParamsElement.textContent = JSON.stringify(params, null, 2);
 
-    // 表示エリアのスタイルを確実に設定
-    currentParamsElement.style.backgroundColor = "#1a1a1a";
-    currentParamsElement.style.color = "#00ff00";
-    currentParamsElement.style.border = "1px solid #555";
-
     saveToLocalStorage(); // 設定をLocalStorageに自動保存
   }
 
@@ -404,7 +399,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const logText = document.createElement("span");
     logText.className = "log-entry-text";
     logText.textContent = `[${timestamp}] ${inputId}: ${oldValue} → ${newValue}`;
-    logText.style.color = "#ffff00"; // 確実に黄色に設定
 
     const revertButton = document.createElement("button");
     revertButton.className = "log-entry-revert";

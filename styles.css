@@ -617,16 +617,17 @@ input[type="color"] {
 
 .log-container {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 #current-params {
   background-color: #1a1a1a !important;
-  border: 1px solid #555;
+  border: 1px solid #555 !important;
   border-radius: 4px;
-  padding: 10px;
+  padding: 10px !important;
   font-family: "Courier New", monospace;
   font-size: 11px;
   color: #00ff00 !important;
@@ -634,20 +635,27 @@ input[type="color"] {
   white-space: pre-wrap;
   overflow-y: auto;
   flex: 1;
-  min-height: 100px;
+  min-height: 150px;
+  max-height: 300px;
+  display: block !important;
+  visibility: visible !important;
 }
 
 #change-log {
   background-color: #1a1a1a !important;
-  border: 1px solid #555;
+  border: 1px solid #555 !important;
   border-radius: 4px;
-  padding: 10px;
+  padding: 10px !important;
   font-family: "Courier New", monospace;
   font-size: 11px;
   color: #ffff00 !important;
-  overflow-y: auto;
+  overflow-y: auto !important;
   flex: 1;
-  min-height: 100px;
+  min-height: 150px;
+  max-height: none;
+  height: 100%;
+  display: block !important;
+  visibility: visible !important;
 }
 
 .log-entry {
