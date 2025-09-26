@@ -10,9 +10,22 @@
     <div class="scene">
       <div id="stage">
         <div class="floor">
+          <!-- 既存の中央3つのスポットライト -->
           <div class="spotlight" id="left-spotlight"></div>
           <div class="spotlight" id="center-spotlight"></div>
           <div class="spotlight" id="right-spotlight"></div>
+
+          <!-- 新しいスポットライト -->
+          <div class="spotlight" id="host-spotlight"></div>
+          <!-- 司会用（右側手前） -->
+          <div class="spotlight" id="back-right-spotlight"></div>
+          <!-- 右奥 -->
+          <div class="spotlight" id="back-left-spotlight"></div>
+          <!-- 左奥 -->
+          <div class="spotlight" id="front-left-spotlight"></div>
+          <!-- 手前左 -->
+          <div class="spotlight" id="front-right-spotlight"></div>
+          <!-- 手前右 -->
         </div>
         <!-- 舞台奥のライト（床から独立、横一列30個、観客席向け） -->
         <div class="back-lights-container">
@@ -315,6 +328,141 @@
           <input
             type="range"
             id="right-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 司会用スポットライト -->
+      <div class="control-section">
+        <h4>司会用スポットライト</h4>
+        <div class="control-group">
+          <label for="host-size">サイズ:</label>
+          <input
+            type="range"
+            id="host-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="host-intensity">強さ:</label>
+          <input
+            type="range"
+            id="host-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 右奥スポットライト -->
+      <div class="control-section">
+        <h4>右奥スポットライト</h4>
+        <div class="control-group">
+          <label for="back-right-size">サイズ:</label>
+          <input
+            type="range"
+            id="back-right-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="back-right-intensity">強さ:</label>
+          <input
+            type="range"
+            id="back-right-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 左奥スポットライト -->
+      <div class="control-section">
+        <h4>左奥スポットライト</h4>
+        <div class="control-group">
+          <label for="back-left-size">サイズ:</label>
+          <input
+            type="range"
+            id="back-left-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="back-left-intensity">強さ:</label>
+          <input
+            type="range"
+            id="back-left-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 手前左スポットライト -->
+      <div class="control-section">
+        <h4>手前左スポットライト</h4>
+        <div class="control-group">
+          <label for="front-left-size">サイズ:</label>
+          <input
+            type="range"
+            id="front-left-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="front-left-intensity">強さ:</label>
+          <input
+            type="range"
+            id="front-left-intensity"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+        </div>
+      </div>
+
+      <!-- 手前右スポットライト -->
+      <div class="control-section">
+        <h4>手前右スポットライト</h4>
+        <div class="control-group">
+          <label for="front-right-size">サイズ:</label>
+          <input
+            type="range"
+            id="front-right-size"
+            min="50"
+            max="400"
+            value="150"
+            step="10"
+          />
+        </div>
+        <div class="control-group">
+          <label for="front-right-intensity">強さ:</label>
+          <input
+            type="range"
+            id="front-right-intensity"
             min="0"
             max="100"
             value="100"

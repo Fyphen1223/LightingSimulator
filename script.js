@@ -10,6 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const centerSpotlight = document.getElementById("center-spotlight");
   const rightSpotlight = document.getElementById("right-spotlight");
 
+  // 新しいスポットライト要素
+  const hostSpotlight = document.getElementById("host-spotlight");
+  const backRightSpotlight = document.getElementById("back-right-spotlight");
+  const backLeftSpotlight = document.getElementById("back-left-spotlight");
+  const frontLeftSpotlight = document.getElementById("front-left-spotlight");
+  const frontRightSpotlight = document.getElementById("front-right-spotlight");
+
   // ホリゾントライト要素
   const upperLeftHorizon = document.getElementById("upper-left-horizon");
   const upperRightHorizon = document.getElementById("upper-right-horizon");
@@ -108,6 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSpotlight(leftSpotlight, "left", -250, 0); // 左スポットライト
     updateSpotlight(centerSpotlight, "center", 0, 0); // 中央スポットライト
     updateSpotlight(rightSpotlight, "right", 250, 0); // 右スポットライト
+
+    // 新しいスポットライト更新
+    updateSpotlight(hostSpotlight, "host", 200, 150); // 司会用（右側手前）
+    updateSpotlight(backRightSpotlight, "back-right", 250, -200); // 右奥
+    updateSpotlight(backLeftSpotlight, "back-left", -250, -200); // 左奥
+    updateSpotlight(frontLeftSpotlight, "front-left", -200, 150); // 手前左
+    updateSpotlight(frontRightSpotlight, "front-right", 200, 150); // 手前右
 
     // ホリゾントライト更新
     updateHorizonLight(
@@ -312,6 +326,26 @@ document.addEventListener("DOMContentLoaded", () => {
         right: {
           size: document.getElementById("right-size").value,
           intensity: document.getElementById("right-intensity").value,
+        },
+        host: {
+          size: document.getElementById("host-size").value,
+          intensity: document.getElementById("host-intensity").value,
+        },
+        backRight: {
+          size: document.getElementById("back-right-size").value,
+          intensity: document.getElementById("back-right-intensity").value,
+        },
+        backLeft: {
+          size: document.getElementById("back-left-size").value,
+          intensity: document.getElementById("back-left-intensity").value,
+        },
+        frontLeft: {
+          size: document.getElementById("front-left-size").value,
+          intensity: document.getElementById("front-left-intensity").value,
+        },
+        frontRight: {
+          size: document.getElementById("front-right-size").value,
+          intensity: document.getElementById("front-right-intensity").value,
         },
       },
       backLights: {

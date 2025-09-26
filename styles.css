@@ -86,6 +86,32 @@ body.panel-collapsed {
   pointer-events: none; /* 操作の邪魔にならないように */
 }
 
+/* 新しいスポットライトの配置 */
+#host-spotlight {
+  top: 65%; /* 手前側 */
+  left: 70%; /* 右側 */
+}
+
+#back-right-spotlight {
+  top: 45%; /* もう少し手前に */
+  left: 65%; /* 右側（舞台内に調整） */
+}
+
+#back-left-spotlight {
+  top: 45%; /* もう少し手前に */
+  left: 35%; /* 左側（舞台内に調整） */
+}
+
+#front-left-spotlight {
+  top: 65%; /* 手前側 */
+  left: 30%; /* 左側 */
+}
+
+#front-right-spotlight {
+  top: 65%; /* 手前側 */
+  left: 70%; /* 右側（司会用と少し重複） */
+}
+
 /* 舞台奥のライト（back-wall近くの床面） */
 .back-lights-container {
   position: absolute;
