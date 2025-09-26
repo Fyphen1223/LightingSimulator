@@ -700,6 +700,88 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // リセット機能
+  const resetButton = document.getElementById("reset-lights");
+  resetButton.addEventListener("click", () => {
+    if (confirm("すべての照明を初期状態にリセットしますか？")) {
+      // すべての強度を0に設定
+      const intensityInputs = [
+        "left-intensity",
+        "center-intensity",
+        "right-intensity",
+        "host-intensity",
+        "back-right-intensity",
+        "back-left-intensity",
+        "front-left-intensity",
+        "front-right-intensity",
+        "upper-left-intensity",
+        "upper-right-intensity",
+        "lower-left-intensity",
+        "lower-right-intensity",
+        "group1-intensity",
+        "group2-intensity",
+        "group3-intensity",
+      ];
+
+      intensityInputs.forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.value = "0";
+        }
+      });
+
+      // Masterフェーダーを0に設定
+      masterFader.value = "0";
+
+      // すべてのRGB値を0に設定（ライトを消す）
+      const colorInputs = [
+        "upper-left-red",
+        "upper-left-green",
+        "upper-left-blue",
+        "upper-right-red",
+        "upper-right-green",
+        "upper-right-blue",
+        "lower-left-red",
+        "lower-left-green",
+        "lower-left-blue",
+        "lower-right-red",
+        "lower-right-green",
+        "lower-right-blue",
+        "group1-red",
+        "group1-green",
+        "group1-blue",
+        "group2-red",
+        "group2-green",
+        "group2-blue",
+        "group3-red",
+        "group3-green",
+        "group3-blue",
+        "floor-red",
+        "floor-green",
+        "floor-blue",
+      ];
+
+      colorInputs.forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.value = "0";
+        }
+      });
+
+      // UIを更新
+      updateMasterValue();
+      updateChaseValue();
+      updateStageColors();
+      updateAllLights();
+      updateParameterDisplay();
+
+      resetButton.textContent = "リセット完了!";
+      setTimeout(() => {
+        resetButton.textContent = "照明リセット";
+      }, 1500);
+    }
+  });
+
   // 入力値の変更を監視（ドラッグ終了時のみログ出力）
   let previousValues = {};
 
