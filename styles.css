@@ -419,9 +419,13 @@ body.panel-collapsed {
   margin: 0 0 10px 0;
   text-align: center;
   color: #fff;
-  font-size: 1.2em;
-  border-bottom: 2px solid #444;
+  font-size: 1em;
+  border-bottom: 2px solid #555;
   padding-bottom: 5px;
+  background: linear-gradient(to right, transparent, #3a3a3a 20%, #3a3a3a 80%, transparent);
+  padding: 6px;
+  border-radius: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .control-section {
@@ -481,12 +485,20 @@ input[type="range"] {
   width: 100%;
   height: 140px;
   border-radius: 6px;
-  background: linear-gradient(to right, 
-    #1a1a1a 0%, 
-    #2a2a2a 25%, 
-    #1a1a1a 50%, 
-    #2a2a2a 75%, 
-    #1a1a1a 100%);
+  background: 
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 13px,
+      rgba(0, 0, 0, 0.3) 13px,
+      rgba(0, 0, 0, 0.3) 14px
+    ),
+    linear-gradient(to right, 
+      #1a1a1a 0%, 
+      #2a2a2a 25%, 
+      #1a1a1a 50%, 
+      #2a2a2a 75%, 
+      #1a1a1a 100%);
   outline: none;
   -webkit-appearance: none;
   writing-mode: bt-lr; /* IE */
@@ -506,30 +518,66 @@ input[type="range"]::-webkit-slider-thumb {
   width: calc(100% + 8px);
   height: 40px;
   border-radius: 4px;
-  background: linear-gradient(to bottom,
-    #4a4a4a 0%,
-    #5a5a5a 15%,
-    #6a6a6a 50%,
-    #5a5a5a 85%,
-    #4a4a4a 100%);
+  background: 
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0.3) 0%,
+      transparent 20%,
+      transparent 80%,
+      rgba(0, 0, 0, 0.3) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.15) 3px,
+      rgba(0, 0, 0, 0.15) 4px
+    ),
+    linear-gradient(to bottom,
+      #5a5a5a 0%,
+      #6a6a6a 15%,
+      #7a7a7a 50%,
+      #6a6a6a 85%,
+      #5a5a5a 100%);
   cursor: grab;
   box-shadow: 
-    0 3px 8px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.5);
-  border: 1px solid #2a2a2a;
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+    inset 2px 0 2px rgba(0, 0, 0, 0.3),
+    inset -2px 0 2px rgba(255, 255, 255, 0.1);
+  border: 1px solid #3a3a3a;
   position: relative;
   margin-left: -4px;
 }
 
 input[type="range"]::-webkit-slider-thumb:active {
   cursor: grabbing;
-  background: linear-gradient(to bottom,
-    #5a5a5a 0%,
-    #6a6a6a 15%,
-    #7a7a7a 50%,
-    #6a6a6a 85%,
-    #5a5a5a 100%);
+  background: 
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0.3) 0%,
+      transparent 20%,
+      transparent 80%,
+      rgba(0, 0, 0, 0.3) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.15) 3px,
+      rgba(0, 0, 0, 0.15) 4px
+    ),
+    linear-gradient(to bottom,
+      #6a6a6a 0%,
+      #7a7a7a 15%,
+      #8a8a8a 50%,
+      #7a7a7a 85%,
+      #6a6a6a 100%);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.8),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+    inset 2px 0 2px rgba(0, 0, 0, 0.3),
+    inset -2px 0 2px rgba(255, 255, 255, 0.1);
 }
 
 input[type="range"]::-webkit-slider-thumb::before {
@@ -548,28 +596,64 @@ input[type="range"]::-moz-range-thumb {
   width: calc(100% + 8px);
   height: 40px;
   border-radius: 4px;
-  background: linear-gradient(to bottom,
-    #4a4a4a 0%,
-    #5a5a5a 15%,
-    #6a6a6a 50%,
-    #5a5a5a 85%,
-    #4a4a4a 100%);
+  background: 
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0.3) 0%,
+      transparent 20%,
+      transparent 80%,
+      rgba(0, 0, 0, 0.3) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.15) 3px,
+      rgba(0, 0, 0, 0.15) 4px
+    ),
+    linear-gradient(to bottom,
+      #5a5a5a 0%,
+      #6a6a6a 15%,
+      #7a7a7a 50%,
+      #6a6a6a 85%,
+      #5a5a5a 100%);
   cursor: grab;
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   box-shadow: 
-    0 3px 8px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.5);
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+    inset 2px 0 2px rgba(0, 0, 0, 0.3),
+    inset -2px 0 2px rgba(255, 255, 255, 0.1);
 }
 
 input[type="range"]::-moz-range-thumb:active {
   cursor: grabbing;
-  background: linear-gradient(to bottom,
-    #5a5a5a 0%,
-    #6a6a6a 15%,
-    #7a7a7a 50%,
-    #6a6a6a 85%,
-    #5a5a5a 100%);
+  background: 
+    linear-gradient(to right,
+      rgba(0, 0, 0, 0.3) 0%,
+      transparent 20%,
+      transparent 80%,
+      rgba(0, 0, 0, 0.3) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 0, 0, 0.15) 3px,
+      rgba(0, 0, 0, 0.15) 4px
+    ),
+    linear-gradient(to bottom,
+      #6a6a6a 0%,
+      #7a7a7a 15%,
+      #8a8a8a 50%,
+      #7a7a7a 85%,
+      #6a6a6a 100%);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.8),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+    inset 2px 0 2px rgba(0, 0, 0, 0.3),
+    inset -2px 0 2px rgba(255, 255, 255, 0.1);
 }
 
 /* Firefox vertical orientation */
