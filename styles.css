@@ -351,8 +351,8 @@ body.panel-collapsed {
   background: linear-gradient(135deg, #1a1a1a 0%, #282828 50%, #1a1a1a 100%);
   border-radius: 12px;
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  flex-direction: row;
+  flex-wrap: nowrap;
   box-shadow: 
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -361,7 +361,6 @@ body.panel-collapsed {
 }
 
 .master-section {
-  order: 9999;
   background: linear-gradient(135deg, #3a3a3a 0%, #444 50%, #3a3a3a 100%);
   padding: 4px;
   border-radius: 0;
@@ -369,11 +368,12 @@ body.panel-collapsed {
   border-top: none;
   border-right: none;
   border-bottom: none;
-  display: flex;
+  display: flex !important;
   flex-direction: row;
   gap: 0;
   min-width: 150px;
-  max-width: 200px;
+  width: 150px;
+  flex-shrink: 0;
   align-items: stretch;
   box-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.3),
@@ -428,16 +428,26 @@ body.panel-collapsed {
   display: none;
 }
 
-.control-section {
-  display: contents;
+/* Faders container - everything except master */
+.controls > *:not(.master-section) {
+  display: flex !important;
+  flex-wrap: wrap;
+  flex: 1;
+  align-content: flex-start;
 }
+
+.control-section {
+  display: contents !important;
+}
+
+
 
 .control-section h4 {
   display: none;
 }
 
 .control-group {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   gap: 3px;
