@@ -132,7 +132,7 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 90%; /* 舞台幅 */
+  width: 100%; /* 舞台幅いっぱいに */
   /* 床の高さ(translateZ(-200px) after rotateX(90deg) -> Y=+200px)に合わせる */
   /* 奥(-350px)に配置 */
   transform: translate3d(-50%, calc(-50% + 200px), -350px);
@@ -140,116 +140,88 @@ body {
   z-index: 10;
   background: transparent;
   border: none;
-  padding: 5px 0;
-  box-shadow: none;
+  padding: 0 5%; /* 両端に余白 */
+  box-sizing: border-box;
   pointer-events: none; /* クリックを邪魔しないように */
+  display: flex;
+  justify-content: center;
 }
 
 .light-row {
   display: flex;
-  gap: 0;
-  justify-content: space-between; /* 均等配置 */
-  align-items: center;
+  gap: 0; /* gapなしで均等配置 */
+  justify-content: space-between; /* 端から端まで配置 */
+  align-items: flex-end; /* 下揃え */
   flex-wrap: nowrap;
-  padding: 0 10px;
+  padding: 0;
   width: 100%;
   box-sizing: border-box;
 }
 
 .back-light {
-  width: 12px;
-  height: 12px;
-  min-width: 12px;
-  min-height: 12px;
-  background: radial-gradient(
-    circle at 30% 30%,
-    #444 0%,
-    #333 40%,
-    #222 70%,
-    #111 100%
-  );
-  border: 1px solid #666;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  background: #111; /* JSが上書きするが初期値として */
+  border: 1px solid #333;
   border-radius: 50%;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.15),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
   position: relative;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
-  /* 独立させたので回転は不要（デフォルトで正面向き） */
-  /* transform: rotateX(-90deg); */
   transform-style: preserve-3d;
+  z-index: 2;
+  /* 少し上向きに傾けて立体感を出す */
+  transform: rotateX(-30deg);
+  margin-bottom: 8px; /* スタンドのスペース */
 }
 
+/* 筐体の厚み（側面・背面） */
 .back-light::after {
   content: "";
   position: absolute;
-  top: -2px;
+  top: 40%;
   left: -2px;
-  width: 14px;
-  height: 14px;
-  border: 1px solid #777;
-  background: linear-gradient(135deg, #444, #222, #111);
+  right: -2px;
+  bottom: -5px; /* 下に伸ばして厚みを出す */
+  background: linear-gradient(to bottom, #333, #000);
+  border: 1px solid #222;
+  border-top: none;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%; /* 下半分を丸く */
   z-index: -1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.4);
-  border-radius: 2px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
 }
 
+/* スタンド（脚） */
 .back-light::before {
   content: "";
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 4px;
+  bottom: -8px; /* 本体の下 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
   height: 4px;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(255, 255, 255, 0.4) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    transparent 100%
-  );
-  border-radius: 50%;
-  pointer-events: none;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 1px;
+  z-index: -2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
 .back-light.active {
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.95) 15%,
-    rgba(255, 255, 255, 0.8) 40%,
-    rgba(255, 255, 255, 0.5) 70%,
-    rgba(255, 255, 255, 0.2) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: inset 0 3px 6px rgba(255, 255, 255, 0.8),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 1),
-    0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.6),
-    0 0 80px rgba(255, 255, 255, 0.4), 0 500px 350px rgba(255, 255, 255, 0.25),
-    0 400px 250px rgba(255, 255, 255, 0.18),
-    0 300px 200px rgba(255, 255, 255, 0.12),
-    0 600px 400px rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px) scale(1.25);
-}
-
-.back-light.active::before {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.9) 20%,
-    rgba(255, 255, 255, 0.6) 50%,
-    transparent 100%
-  );
-  width: 12px;
-  height: 12px;
+  /* JSでbackgroundとbox-shadowが設定される */
+  transform: rotateX(-30deg) translateY(-2px) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .back-light.active::after {
-  background: rgba(255, 255, 255, 0.3);
-  filter: blur(4px);
+  border-color: #444;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.back-light.active::before {
+  background: #222;
 }
 
 /* --- Horizon Lights --- */
