@@ -490,7 +490,7 @@ input[type="range"].vertical-fader::-moz-range-thumb {
   justify-content: flex-start;
   overflow-x: auto; /* 横スクロールを許可 */
   padding-bottom: 15px; /* スクロールバーのスペース確保 */
-  min-height: 260px; /* 高さを確保してスクロールバーと干渉しないように */
+  min-height: 350px; /* 高さを確保してスクロールバーと干渉しないように */
   align-items: flex-start;
 }
 
@@ -569,12 +569,15 @@ input[type="range"].vertical-fader::-moz-range-thumb {
 }
 
 /* Control Sections */
-.master-section,
 .control-section {
   background-color: var(--control-bg);
   padding: 15px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
+}
+
+.master-section {
+  padding: 15px;
 }
 
 .master-section h3,

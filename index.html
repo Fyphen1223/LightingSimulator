@@ -73,49 +73,45 @@
     <div class="right-panel">
       <div class="controls">
         <!-- Master & Chase Control -->
-        <div class="master-section">
-          <h3>Master & Chase Control</h3>
-          <div class="console-row">
-            <!-- Master Fader -->
-            <div class="fader-container">
-              <label class="fader-label" for="master-fader">Master</label>
-              <div class="fader-wrapper">
-                <input
-                  type="range"
-                  id="master-fader"
-                  class="vertical-fader"
-                  min="0"
-                  max="100"
-                  value="100"
-                  step="1"
-                />
-              </div>
-              <span id="master-value" class="fader-value">100%</span>
+        <h3>Master & Chase Control</h3>
+        <div class="console-row" style="overflow: visible; min-height: auto">
+          <!-- Master Fader -->
+          <div class="fader-container">
+            <label class="fader-label" for="master-fader">Master</label>
+            <div class="fader-wrapper">
+              <input
+                type="range"
+                id="master-fader"
+                class="vertical-fader"
+                min="0"
+                max="100"
+                value="100"
+                step="1"
+              />
             </div>
+            <span id="master-value" class="fader-value">100%</span>
+          </div>
 
-            <!-- Chase Fader -->
-            <div class="fader-container">
-              <label class="fader-label" for="chase-fader">Chase</label>
-              <div class="fader-wrapper">
-                <input
-                  type="range"
-                  id="chase-fader"
-                  class="vertical-fader"
-                  min="0"
-                  max="100"
-                  value="0"
-                  step="1"
-                  disabled
-                />
-              </div>
-              <span id="chase-value" class="fader-value">0%</span>
+          <!-- Chase Fader -->
+          <div class="fader-container">
+            <label class="fader-label" for="chase-fader">Chase</label>
+            <div class="fader-wrapper">
+              <input
+                type="range"
+                id="chase-fader"
+                class="vertical-fader"
+                min="0"
+                max="100"
+                value="0"
+                step="1"
+                disabled
+              />
             </div>
+            <span id="chase-value" class="fader-value">0%</span>
+          </div>
 
-            <div class="control-group" style="justify-content: center">
-              <button id="reset-lights" class="reset-button">
-                照明リセット
-              </button>
-            </div>
+          <div class="control-group" style="justify-content: center">
+            <button id="reset-lights" class="reset-button">照明リセット</button>
           </div>
         </div>
 

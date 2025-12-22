@@ -1005,7 +1005,17 @@ document.addEventListener("DOMContentLoaded", () => {
       updateParameterDisplay();
     });
 
-    // RGBスライダー変更時 -> ピッカー更新（逆方向は複雑なので今回は省略、または必要に応じて実装）
+    // RGBスライダー変更時 -> ピッカー更新
+    const updatePicker = () => {
+      const r = parseInt(rInput.value);
+      const g = parseInt(gInput.value);
+      const b = parseInt(bInput.value);
+      picker.value = rgbToHex(r, g, b);
+    };
+
+    rInput.addEventListener("input", updatePicker);
+    gInput.addEventListener("input", updatePicker);
+    bInput.addEventListener("input", updatePicker);
   }
 
   setupColorPicker(
