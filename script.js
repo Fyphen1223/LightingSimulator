@@ -26,6 +26,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // 舞台奥ライト要素
   const backLights = document.querySelectorAll(".back-light");
 
+  // ビーム要素を追加
+  backLights.forEach((light) => {
+    if (!light.querySelector(".beam")) {
+      const beam = document.createElement("div");
+      beam.className = "beam";
+      light.appendChild(beam);
+    }
+  });
+
   function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -85,18 +94,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     backLights.forEach((light) => {
       if (light.dataset.group === groupNumber.toString()) {
+        const beam = light.querySelector(".beam");
+
         if (finalIntensity > 0) {
           light.classList.add("active");
-          light.style.background = `linear-gradient(to bottom, rgba(${r}, ${g}, ${b}, ${finalIntensity}) 0%, rgba(${r}, ${g}, ${b}, 0.1) 100%)`;
-          light.style.boxShadow = `
-            0 200px 150px rgba(${r}, ${g}, ${b}, ${finalIntensity * 0.1}),
-            0 150px 100px rgba(${r}, ${g}, ${b}, ${finalIntensity * 0.05}),
-            0 100px 80px rgba(${r}, ${g}, ${b}, ${finalIntensity * 0.02})
-          `;
+
+          // 本体（光源）の輝き
+          light.style.background = `radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(${r}, ${g}, ${b}, ${finalIntensity}) 40%, rgba(${r}, ${g}, ${b}, 0.8) 100%)`;
+          light.style.boxShadow = `0 0 10px rgba(${r}, ${g}, ${b}, ${finalIntensity}), 0 0 20px rgba(${r}, ${g}, ${b}, ${
+            finalIntensity * 0.5
+          })`;
+
+          // ビームの更新
+          if (beam) {
+            beam.style.opacity = finalIntensity;
+            beam.style.background = `linear-gradient(to bottom, rgba(${r}, ${g}, ${b}, 0.8) 0%, rgba(${r}, ${g}, ${b}, 0) 100%)`;
+            beam.style.boxShadow = `0 0 20px rgba(${r}, ${g}, ${b}, ${
+              finalIntensity * 0.5
+            })`;
+          }
         } else {
           light.classList.remove("active");
-          light.style.background = "#222";
-          light.style.boxShadow = "0 0 5px rgba(0, 0, 0, 0.3)";
+          light.style.background =
+            "radial-gradient(circle at 30% 30%, #444 0%, #333 40%, #222 70%, #111 100%)";
+          light.style.boxShadow =
+            "0 3px 6px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.4)";
+
+          if (beam) {
+            beam.style.opacity = 0;
+          }
         }
       }
     });
@@ -159,6 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 舞台奥ライト更新
     updateAllBackLights();
+
+    // ステージカラー更新
+    updateStageColors();
   }
 
   // Masterフェーダー値表示更新
@@ -171,6 +200,39 @@ document.addEventListener("DOMContentLoaded", () => {
     chaseValue.textContent = `${chaseFader.value}%`;
   }
 
+  // 汎用フェーダー値表示更新
+  function updateFaderValue(input) {
+    // IDに基づいて対応する値表示要素を探す
+    // 例: group1-intensity -> group1-intensity-value
+    // 例: floor-red -> floor-red-value
+    // 例: master-fader -> master-value (これは既存の関数で処理されているが、統一しても良い)
+
+    let valueSpanId = `${input.id}-value`;
+
+    // 特殊なケース（既存のID命名規則と異なる場合）
+    if (input.id === "master-fader") valueSpanId = "master-value";
+    if (input.id === "chase-fader") valueSpanId = "chase-value";
+
+    const valueSpan = document.getElementById(valueSpanId);
+
+    if (valueSpan) {
+      if (input.max === "100") {
+        valueSpan.textContent = `${input.value}%`;
+      } else {
+        valueSpan.textContent = input.value;
+      }
+    }
+  }
+
+  // 全てのフェーダーの値表示を更新
+  function updateAllFaderValues() {
+    document
+      .querySelectorAll(".controls input[type='range']")
+      .forEach((input) => {
+        updateFaderValue(input);
+      });
+  }
+
   // ステージカラー更新関数
   function updateStageColors() {
     // 床の色
@@ -178,22 +240,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const floorGreen = document.getElementById("floor-green").value;
     const floorBlue = document.getElementById("floor-blue").value;
 
+    // Masterフェーダーの影響を適用
+    const masterLevel = masterFader.value / 100;
+    const r = Math.floor(floorRed * masterLevel);
+    const g = Math.floor(floorGreen * masterLevel);
+    const b = Math.floor(floorBlue * masterLevel);
+
     // CSS変数を更新
     document.documentElement.style.setProperty(
       "--floor-color",
-      `rgb(${floorRed}, ${floorGreen}, ${floorBlue})`
+      `rgb(${r}, ${g}, ${b})`
     );
   }
 
   // 全ての入力コントロールにイベントリスナーを追加
   document.querySelectorAll(".controls input").forEach((input) => {
     input.addEventListener("input", () => {
-      if (input.id === "master-fader") {
-        updateMasterValue();
-      } else if (input.id === "chase-fader") {
-        updateChaseValue();
-      } else if (input.id.startsWith("floor-")) {
-        updateStageColors();
+      if (input.type === "range") {
+        updateFaderValue(input);
       }
       updateAllLights();
     });
@@ -522,6 +586,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  function rgbToHex(r, g, b) {
+    return (
+      "#" +
+      [r, g, b]
+        .map((x) => {
+          const hex = parseInt(x).toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        })
+        .join("")
+    );
+  }
+
   // パラメーターをUIに適用する関数
   function applyParametersToUI(params) {
     try {
@@ -576,6 +652,17 @@ document.addEventListener("DOMContentLoaded", () => {
               document.getElementById(`${group}-green`).value = g.green;
             if (g.blue !== undefined)
               document.getElementById(`${group}-blue`).value = g.blue;
+
+            // カラーピッカーも更新
+            const picker = document.getElementById(`${group}-color-picker`);
+            if (
+              picker &&
+              g.red !== undefined &&
+              g.green !== undefined &&
+              g.blue !== undefined
+            ) {
+              picker.value = rgbToHex(g.red, g.green, g.blue);
+            }
           }
         });
       }
@@ -596,6 +683,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById(`${prefix}-green`).value = h.green;
               if (h.blue !== undefined)
                 document.getElementById(`${prefix}-blue`).value = h.blue;
+
+              // カラーピッカーも更新
+              const picker = document.getElementById(`${prefix}-color-picker`);
+              if (
+                picker &&
+                h.red !== undefined &&
+                h.green !== undefined &&
+                h.blue !== undefined
+              ) {
+                picker.value = rgbToHex(h.red, h.green, h.blue);
+              }
             }
           }
         );
@@ -610,6 +708,16 @@ document.addEventListener("DOMContentLoaded", () => {
             params.stage.floor.green;
         if (params.stage.floor.blue !== undefined)
           document.getElementById("floor-blue").value = params.stage.floor.blue;
+
+        // カラーピッカーも更新
+        const picker = document.getElementById("floor-color-picker");
+        if (picker && params.stage.floor.red !== undefined) {
+          picker.value = rgbToHex(
+            params.stage.floor.red,
+            params.stage.floor.green,
+            params.stage.floor.blue
+          );
+        }
       }
 
       // 全ての値を初期値として記録
@@ -620,6 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 全ての表示を更新
       updateStageColors();
       updateAllLights();
+      updateAllFaderValues();
       updateParameterDisplay();
 
       return true;
@@ -733,7 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Masterフェーダーを0に設定
       masterFader.value = "0";
 
-      // すべてのRGB値を0に設定（ライトを消す）
+      // すべてのRGB値を255に設定（ライトを白にする）
       const colorInputs = [
         "upper-left-red",
         "upper-left-green",
@@ -764,7 +873,26 @@ document.addEventListener("DOMContentLoaded", () => {
       colorInputs.forEach((id) => {
         const input = document.getElementById(id);
         if (input) {
-          input.value = "0";
+          input.value = "255";
+        }
+      });
+
+      // カラーピッカーを白にリセット
+      const colorPickers = [
+        "upper-left-color-picker",
+        "upper-right-color-picker",
+        "lower-left-color-picker",
+        "lower-right-color-picker",
+        "group1-color-picker",
+        "group2-color-picker",
+        "group3-color-picker",
+        "floor-color-picker",
+      ];
+
+      colorPickers.forEach((id) => {
+        const picker = document.getElementById(id);
+        if (picker) {
+          picker.value = "#ffffff";
         }
       });
 
@@ -773,6 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateChaseValue();
       updateStageColors();
       updateAllLights();
+      updateAllFaderValues();
       updateParameterDisplay();
 
       resetButton.textContent = "リセット完了!";
@@ -843,6 +972,91 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // カラーピッカーとRGBスライダーの連携
+  function setupColorPicker(pickerId, rId, gId, bId) {
+    const picker = document.getElementById(pickerId);
+    const rInput = document.getElementById(rId);
+    const gInput = document.getElementById(gId);
+    const bInput = document.getElementById(bId);
+
+    if (!picker || !rInput || !gInput || !bInput) return;
+
+    // 初期同期: ピッカーの値をRGB入力に反映
+    // これにより、ページ読み込み時にRGB値が0（真っ黒）になるのを防ぐ
+    const initialRgb = hexToRgb(picker.value);
+    rInput.value = initialRgb.r;
+    gInput.value = initialRgb.g;
+    bInput.value = initialRgb.b;
+    updateFaderValue(rInput);
+    updateFaderValue(gInput);
+    updateFaderValue(bInput);
+
+    // ピッカー変更時 -> RGBスライダー更新
+    picker.addEventListener("input", (e) => {
+      const hex = e.target.value;
+      const rgb = hexToRgb(hex);
+      rInput.value = rgb.r;
+      gInput.value = rgb.g;
+      bInput.value = rgb.b;
+      updateFaderValue(rInput);
+      updateFaderValue(gInput);
+      updateFaderValue(bInput);
+      updateAllLights();
+      updateParameterDisplay();
+    });
+
+    // RGBスライダー変更時 -> ピッカー更新（逆方向は複雑なので今回は省略、または必要に応じて実装）
+  }
+
+  setupColorPicker(
+    "group1-color-picker",
+    "group1-red",
+    "group1-green",
+    "group1-blue"
+  );
+  setupColorPicker(
+    "group2-color-picker",
+    "group2-red",
+    "group2-green",
+    "group2-blue"
+  );
+  setupColorPicker(
+    "group3-color-picker",
+    "group3-red",
+    "group3-green",
+    "group3-blue"
+  );
+  setupColorPicker(
+    "upper-left-color-picker",
+    "upper-left-red",
+    "upper-left-green",
+    "upper-left-blue"
+  );
+  setupColorPicker(
+    "upper-right-color-picker",
+    "upper-right-red",
+    "upper-right-green",
+    "upper-right-blue"
+  );
+  setupColorPicker(
+    "lower-left-color-picker",
+    "lower-left-red",
+    "lower-left-green",
+    "lower-left-blue"
+  );
+  setupColorPicker(
+    "lower-right-color-picker",
+    "lower-right-red",
+    "lower-right-green",
+    "lower-right-blue"
+  );
+  setupColorPicker(
+    "floor-color-picker",
+    "floor-red",
+    "floor-green",
+    "floor-blue"
+  );
+
   // 初期状態を適用
   // UIエレメントの初期スタイル設定（真っ暗になる問題の対策）
   function ensureUIStyles() {
@@ -883,4 +1097,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 定期的にスタイルをチェック（保険として）
   setInterval(ensureUIStyles, 5000);
+
+  // パネルリサイズ機能
+  const resizer = document.getElementById("dragMe");
+  const body = document.body;
+  let isResizing = false;
+
+  resizer.addEventListener("mousedown", (e) => {
+    isResizing = true;
+    resizer.classList.add("resizing");
+    document.body.style.cursor = "col-resize";
+    e.preventDefault(); // テキスト選択などを防止
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+
+    // 右パネルの幅を計算 (全体幅 - マウス位置 - リサイザー幅)
+    // リサイザーの中心を基準にするため、少し調整しても良いが、簡易的に計算
+    const rightPanelWidth = window.innerWidth - e.clientX;
+
+    // 最小・最大幅の制限 (オプション)
+    if (rightPanelWidth < 200) return; // 最小幅
+    if (rightPanelWidth > window.innerWidth * 0.6) return; // 最大幅 (画面の60%)
+
+    // グリッドレイアウトを更新
+    // 左パネル(1fr) リサイザー(5px) 右パネル(計算した幅px)
+    body.style.gridTemplateColumns = `1fr 5px ${rightPanelWidth}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove("resizing");
+      document.body.style.cursor = "default";
+    }
+  });
 });
