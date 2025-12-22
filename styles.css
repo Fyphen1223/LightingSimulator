@@ -1,41 +1,59 @@
 :root {
-  /* ステージの色を制御するCSS変数 */
-  --floor-color: rgb(0, 0, 0); /* 初期値：黒 */
+  --bg-color: #121212;
+  --panel-bg: #1e1e1e;
+  --control-bg: #2d2d2d;
+  --text-color: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --accent-color: #007acc;
+  --border-color: #333;
+  --floor-color: rgb(0, 0, 0);
+  --slider-track: #444;
+  --slider-thumb: #fff;
 }
 
 body {
   margin: 0;
   height: 100vh;
   display: grid;
-  grid-template-rows: 2fr 1fr 0.8fr;
-  background-color: #1a1a1a;
-  color: #eee;
-  font-family: sans-serif;
-  gap: 10px;
-  padding: 10px;
-  box-sizing: border-box;
+  grid-template-columns: 1fr 5px 400px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
-  transition: grid-template-rows 0.3s ease;
 }
 
-body.panel-collapsed {
-  grid-template-rows: 3fr 1.5fr auto;
+.resizer {
+  background-color: #333;
+  cursor: col-resize;
+  transition: background-color 0.2s;
+  z-index: 10;
 }
 
+.resizer:hover,
+.resizer.resizing {
+  background-color: var(--accent-color);
+}
+
+/* --- Scene / Simulation Area --- */
 .scene {
+  position: relative;
   width: 100%;
   height: 100%;
-  perspective: 1500px;
+  background: #000;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
+  perspective: 1500px;
+  box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
 #stage {
   width: 90%;
   height: 90%;
-  max-width: 800px;
-  max-height: 450px;
+  max-width: 1000px;
+  max-height: 600px;
   position: relative;
   transform-style: preserve-3d;
   transform: rotateX(-15deg) translateZ(-150px);
@@ -46,14 +64,14 @@ body.panel-collapsed {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #333; /* ベースの床色 */
-  border: 1px solid #666;
+  background-color: #333;
+  border: 1px solid #444;
   transform: rotateX(90deg) translateZ(-200px);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
-  position: relative; /* スポットライトの基準点にする */
+  transform-style: preserve-3d;
+  position: relative;
 }
 
-/* 床の色オーバーレイ（ボケ効果付き） */
 .floor::before {
   content: "";
   position: absolute;
@@ -65,95 +83,84 @@ body.panel-collapsed {
   filter: blur(6px);
   opacity: 0.7;
   pointer-events: none;
+  mix-blend-mode: screen; /* 黒(0,0,0)の時は透明になり、色がある時だけ光るようにする */
 }
 
 .back-wall {
   position: absolute;
-  width: 109%;
+  width: 110%;
   height: 100%;
   background-color: #333;
-  border: 1px solid #666;
-  transform: translateZ(-400px) translateY(-95%) translateX(-4%);
+  border: 1px solid #444;
+  transform: translateZ(-400px) translateY(-95%) translateX(-5%);
   background: linear-gradient(to top, #222, #444);
 }
 
+/* --- Spotlights --- */
 .spotlight {
   position: absolute;
   top: 50%;
   left: 50%;
   border-radius: 50%;
   transform-origin: center;
-  pointer-events: none; /* 操作の邪魔にならないように */
+  pointer-events: none;
 }
 
-/* 新しいスポットライトの配置 */
 #host-spotlight {
-  top: 65%; /* 手前側 */
-  left: 70%; /* 右側 */
+  top: 65%;
+  left: 70%;
 }
-
 #back-right-spotlight {
-  top: 45%; /* もう少し手前に */
-  left: 65%; /* 右側（舞台内に調整） */
+  top: 45%;
+  left: 65%;
 }
-
 #back-left-spotlight {
-  top: 45%; /* もう少し手前に */
-  left: 35%; /* 左側（舞台内に調整） */
+  top: 45%;
+  left: 35%;
 }
-
 #front-left-spotlight {
-  top: 65%; /* 手前側 */
-  left: 30%; /* 左側 */
+  top: 65%;
+  left: 30%;
 }
-
 #front-right-spotlight {
-  top: 65%; /* 手前側 */
-  left: 70%; /* 右側（司会用と少し重複） */
+  top: 65%;
+  left: 70%;
 }
 
-/* 舞台奥のライト（back-wall近くの床面） */
+/* --- Back Lights --- */
 .back-lights-container {
   position: absolute;
-  bottom: 5px; /* 舞台の床面下端から少し上 */
+  top: 50%;
   left: 50%;
-  width: 80%;
-  transform: translateX(-50%) translateZ(-300px);
+  width: 90%; /* 舞台幅 */
+  /* 床の高さ(translateZ(-200px) after rotateX(90deg) -> Y=+200px)に合わせる */
+  /* 奥(-350px)に配置 */
+  transform: translate3d(-50%, calc(-50% + 200px), -350px);
   transform-style: preserve-3d;
-  z-index: 12;
-  /* 連続した四角いフレーム */
-  background: linear-gradient(
-    to right,
-    #333 0%,
-    #333 33.33%,
-    #444 33.33%,
-    #444 66.66%,
-    #333 66.66%,
-    #333 100%
-  );
-  border: 2px solid #555;
-  padding: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  background: transparent;
+  border: none;
+  padding: 5px 0;
+  box-shadow: none;
+  pointer-events: none; /* クリックを邪魔しないように */
 }
 
 .light-row {
   display: flex;
-  gap: 2px; /* 四角いボックス間の小さなギャップ */
-  justify-content: center;
+  gap: 0;
+  justify-content: space-between; /* 均等配置 */
   align-items: center;
   flex-wrap: nowrap;
-  padding: 5px;
+  padding: 0 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .back-light {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
-  max-width: 20px;
-  max-height: 20px;
-  aspect-ratio: 1/1;
-  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
   background: radial-gradient(
     circle at 30% 30%,
     #444 0%,
@@ -169,20 +176,19 @@ body.panel-collapsed {
   position: relative;
   pointer-events: none;
   transition: all 0.3s ease;
-  transform-style: preserve-3d;
-  transform: none;
   flex-shrink: 0;
-  /* 四角いボックス内に配置（marginを削除） */
+  /* 独立させたので回転は不要（デフォルトで正面向き） */
+  /* transform: rotateX(-90deg); */
+  transform-style: preserve-3d;
 }
 
-/* 各ライトの四角いボックス（小さく、立体感あり） */
 .back-light::after {
   content: "";
   position: absolute;
-  top: -3px;
-  left: -3px;
-  width: 26px;
-  height: 26px;
+  top: -2px;
+  left: -2px;
+  width: 14px;
+  height: 14px;
   border: 1px solid #777;
   background: linear-gradient(135deg, #444, #222, #111);
   z-index: -1;
@@ -192,14 +198,13 @@ body.panel-collapsed {
   border-radius: 2px;
 }
 
-/* 立体的なライト外観（真円） */
 .back-light::before {
   content: "";
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
   background: radial-gradient(
     circle at 50% 50%,
     rgba(255, 255, 255, 0.4) 0%,
@@ -210,20 +215,6 @@ body.panel-collapsed {
   pointer-events: none;
 }
 
-.back-light::after {
-  content: "";
-  position: absolute;
-  bottom: -3px;
-  left: 50%;
-  width: 20px;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
-  transform: translateX(-50%) rotateX(90deg);
-  filter: blur(2px);
-}
-
-/* 観客席向けの立体的光線効果 */
 .back-light.active {
   background: radial-gradient(
     circle at 30% 30%,
@@ -234,16 +225,13 @@ body.panel-collapsed {
     rgba(255, 255, 255, 0.2) 100%
   );
   border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 
-    /* 内側の光 */ inset 0 3px 6px rgba(255, 255, 255, 0.8),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.4),
-    /* 外側の強い発光 */ 0 0 20px rgba(255, 255, 255, 1),
+  box-shadow: inset 0 3px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -3px 6px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 1),
     0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.6),
-    0 0 80px rgba(255, 255, 255, 0.4),
-    /* 観客席への超強い光線 */ 0 500px 350px rgba(255, 255, 255, 0.25),
+    0 0 80px rgba(255, 255, 255, 0.4), 0 500px 350px rgba(255, 255, 255, 0.25),
     0 400px 250px rgba(255, 255, 255, 0.18),
     0 300px 200px rgba(255, 255, 255, 0.12),
-    /* 前方への強力光円錐 */ 0 600px 400px rgba(255, 255, 255, 0.15);
+    0 600px 400px rgba(255, 255, 255, 0.15);
   transform: translateY(-3px) scale(1.25);
 }
 
@@ -264,7 +252,7 @@ body.panel-collapsed {
   filter: blur(4px);
 }
 
-/* ホリゾントライト */
+/* --- Horizon Lights --- */
 .horizon-light {
   position: absolute;
   pointer-events: none;
@@ -289,7 +277,6 @@ body.panel-collapsed {
       rgba(74, 144, 255, 0) 100%
     );
 }
-
 #upper-right-horizon {
   top: 0;
   right: 0;
@@ -307,7 +294,6 @@ body.panel-collapsed {
       rgba(255, 74, 144, 0) 100%
     );
 }
-
 #lower-left-horizon {
   bottom: 0;
   left: 0;
@@ -325,7 +311,6 @@ body.panel-collapsed {
       rgba(144, 255, 74, 0) 100%
     );
 }
-
 #lower-right-horizon {
   bottom: 0;
   right: 0;
@@ -344,17 +329,285 @@ body.panel-collapsed {
     );
 }
 
-.controls {
+/* --- Vertical Fader Styles --- */
+.fader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #222;
+  border-radius: 4px;
+  border: 1px solid #333;
+  min-width: 60px;
+}
+
+.fader-wrapper {
+  position: relative;
+  width: 40px;
+  height: 180px; /* フェーダーの長さ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #151515;
+  border-radius: 4px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+  margin: 10px 0;
+}
+
+/* 目盛り線 */
+.fader-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 2px;
+  background: #333;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+/* 目盛り（横線） */
+.fader-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  bottom: 15px;
+  left: 25%;
+  right: 25%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #444 0,
+    #444 1px,
+    transparent 1px,
+    transparent 15px
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+input[type="range"].vertical-fader {
+  -webkit-appearance: none;
+  width: 160px; /* 高さになる */
+  height: 40px; /* 幅になる */
+  background: transparent;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  margin: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* トラック（透明にして自前のデザインを表示） */
+input[type="range"].vertical-fader::-webkit-slider-runnable-track {
   width: 100%;
   height: 100%;
+  background: transparent;
+  border: none;
+}
+
+/* つまみ（リアルなデザイン） */
+input[type="range"].vertical-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 30px; /* つまみの幅（回転前は高さ） */
+  width: 50px; /* つまみの高さ（回転前は幅） */
+  background: linear-gradient(
+    to right,
+    #333,
+    #555 20%,
+    #888 50%,
+    #555 80%,
+    #333
+  );
+  border: 1px solid #111;
+  border-radius: 2px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-top: 5px; /* 位置調整 */
+  position: relative;
+  z-index: 2;
+}
+
+/* つまみの中心線 */
+input[type="range"].vertical-fader::-webkit-slider-thumb::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: #fff; /* 白い線 */
+  transform: translateX(-50%);
+}
+
+/* Firefox対応 */
+input[type="range"].vertical-fader::-moz-range-track {
+  background: transparent;
+}
+
+input[type="range"].vertical-fader::-moz-range-thumb {
+  height: 30px;
+  width: 50px;
+  background: linear-gradient(
+    to right,
+    #333,
+    #555 20%,
+    #888 50%,
+    #555 80%,
+    #333
+  );
+  border: 1px solid #111;
+  border-radius: 2px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.fader-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  text-align: center;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.fader-value {
+  font-family: "Consolas", monospace;
+  font-size: 0.9rem;
+  color: #0f0;
+  background: #000;
+  padding: 2px 5px;
+  border-radius: 2px;
+  min-width: 35px;
+  text-align: center;
+  border: 1px solid #333;
+}
+
+/* コンソール風レイアウト */
+.console-row {
+  display: flex;
+  flex-wrap: nowrap; /* 折り返しなし */
+  gap: 10px;
+  justify-content: flex-start;
+  overflow-x: auto; /* 横スクロールを許可 */
+  padding-bottom: 15px; /* スクロールバーのスペース確保 */
+  min-height: 260px; /* 高さを確保してスクロールバーと干渉しないように */
+  align-items: flex-start;
+}
+
+/* スクロールバーのスタイル（Webkit） */
+.console-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.console-row::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.console-row::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.console-row::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.console-section {
+  display: flex;
+  gap: 5px;
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  flex-shrink: 0; /* 縮小しない */
+}
+
+/* --- Right Panel (Controls + Output) --- */
+.right-panel {
+  background-color: var(--panel-bg);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.controls {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Scrollbar Styling */
+.controls::-webkit-scrollbar,
+.parameter-output::-webkit-scrollbar,
+#current-params::-webkit-scrollbar,
+#change-log::-webkit-scrollbar {
+  width: 8px;
+}
+.controls::-webkit-scrollbar-track,
+.parameter-output::-webkit-scrollbar-track,
+#current-params::-webkit-scrollbar-track,
+#change-log::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+.controls::-webkit-scrollbar-thumb,
+.parameter-output::-webkit-scrollbar-thumb,
+#current-params::-webkit-scrollbar-thumb,
+#change-log::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+.controls::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Control Sections */
+.master-section,
+.control-section {
+  background-color: var(--control-bg);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.master-section h3,
+.control-section h4,
+.controls h3 {
+  margin: 0 0 15px 0;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  font-weight: 600;
+}
+
+.controls h3 {
+  margin-top: 10px;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.master-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
   padding: 0;
   background: linear-gradient(135deg, #1a1a1a 0%, #282828 50%, #1a1a1a 100%);
   border-radius: 12px;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.3),
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
   overflow-y: auto;
   border: 2px solid #333;
@@ -375,8 +628,7 @@ body.panel-collapsed {
   width: 150px;
   flex-shrink: 0;
   align-items: stretch;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.3),
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -440,8 +692,6 @@ body.panel-collapsed {
   display: contents !important;
 }
 
-
-
 .control-section h4 {
   display: none;
 }
@@ -449,6 +699,19 @@ body.panel-collapsed {
 .control-group {
   display: flex !important;
   flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-group label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 3px;
   padding: 0;
@@ -458,8 +721,7 @@ body.panel-collapsed {
   min-width: 50px;
   max-width: 70px;
   flex: 0 0 auto;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.3),
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -474,517 +736,169 @@ body.panel-collapsed {
   word-break: break-word;
 }
 
+/* Sliders */
 input[type="range"] {
-  width: 100%;
-  height: 140px;
-  border-radius: 6px;
-  background: 
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 13px,
-      rgba(0, 0, 0, 0.3) 13px,
-      rgba(0, 0, 0, 0.3) 14px
-    ),
-    linear-gradient(to right, 
-      #1a1a1a 0%, 
-      #2a2a2a 25%, 
-      #1a1a1a 50%, 
-      #2a2a2a 75%, 
-      #1a1a1a 100%);
-  outline: none;
   -webkit-appearance: none;
-  writing-mode: bt-lr; /* IE */
-  -webkit-appearance: slider-vertical; /* WebKit */
-  appearance: slider-vertical;
-  border: 2px solid #0a0a0a;
-  box-shadow: 
-    inset 0 0 8px rgba(0, 0, 0, 0.8),
-    inset 2px 0 2px rgba(0, 0, 0, 0.5),
-    inset -2px 0 2px rgba(255, 255, 255, 0.05);
-  position: relative;
+  width: 100%;
+  height: 6px;
+  background: var(--slider-track);
+  border-radius: 3px;
+  outline: none;
+  margin: 10px 0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: calc(100% + 8px);
-  height: 40px;
-  border-radius: 4px;
-  background: 
-    linear-gradient(to right,
-      rgba(0, 0, 0, 0.3) 0%,
-      transparent 20%,
-      transparent 80%,
-      rgba(0, 0, 0, 0.3) 100%
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 3px,
-      rgba(0, 0, 0, 0.15) 3px,
-      rgba(0, 0, 0, 0.15) 4px
-    ),
-    linear-gradient(to bottom,
-      #5a5a5a 0%,
-      #6a6a6a 15%,
-      #7a7a7a 50%,
-      #6a6a6a 85%,
-      #5a5a5a 100%);
-  cursor: grab;
-  box-shadow: 
-    0 4px 10px rgba(0, 0, 0, 0.7),
-    inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
-    inset 2px 0 2px rgba(0, 0, 0, 0.3),
-    inset -2px 0 2px rgba(255, 255, 255, 0.1);
-  border: 1px solid #3a3a3a;
-  position: relative;
-  margin-left: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--slider-thumb);
+  cursor: pointer;
+  transition: transform 0.1s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-input[type="range"]::-webkit-slider-thumb:active {
-  cursor: grabbing;
-  background: 
-    linear-gradient(to right,
-      rgba(0, 0, 0, 0.3) 0%,
-      transparent 20%,
-      transparent 80%,
-      rgba(0, 0, 0, 0.3) 100%
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 3px,
-      rgba(0, 0, 0, 0.15) 3px,
-      rgba(0, 0, 0, 0.15) 4px
-    ),
-    linear-gradient(to bottom,
-      #6a6a6a 0%,
-      #7a7a7a 15%,
-      #8a8a8a 50%,
-      #7a7a7a 85%,
-      #6a6a6a 100%);
-  box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.8),
-    inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
-    inset 2px 0 2px rgba(0, 0, 0, 0.3),
-    inset -2px 0 2px rgba(255, 255, 255, 0.1);
-}
-
-input[type="range"]::-webkit-slider-thumb::before {
-  content: '';
-  position: absolute;
-  width: 80%;
-  height: 3px;
-  background: #3a3a3a;
-  left: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-  border-radius: 1px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: calc(100% + 8px);
-  height: 40px;
-  border-radius: 4px;
-  background: 
-    linear-gradient(to right,
-      rgba(0, 0, 0, 0.3) 0%,
-      transparent 20%,
-      transparent 80%,
-      rgba(0, 0, 0, 0.3) 100%
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 3px,
-      rgba(0, 0, 0, 0.15) 3px,
-      rgba(0, 0, 0, 0.15) 4px
-    ),
-    linear-gradient(to bottom,
-      #5a5a5a 0%,
-      #6a6a6a 15%,
-      #7a7a7a 50%,
-      #6a6a6a 85%,
-      #5a5a5a 100%);
-  cursor: grab;
-  border: 1px solid #3a3a3a;
-  box-shadow: 
-    0 4px 10px rgba(0, 0, 0, 0.7),
-    inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
-    inset 2px 0 2px rgba(0, 0, 0, 0.3),
-    inset -2px 0 2px rgba(255, 255, 255, 0.1);
-}
-
-input[type="range"]::-moz-range-thumb:active {
-  cursor: grabbing;
-  background: 
-    linear-gradient(to right,
-      rgba(0, 0, 0, 0.3) 0%,
-      transparent 20%,
-      transparent 80%,
-      rgba(0, 0, 0, 0.3) 100%
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 3px,
-      rgba(0, 0, 0, 0.15) 3px,
-      rgba(0, 0, 0, 0.15) 4px
-    ),
-    linear-gradient(to bottom,
-      #6a6a6a 0%,
-      #7a7a7a 15%,
-      #8a8a8a 50%,
-      #7a7a7a 85%,
-      #6a6a6a 100%);
-  box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.8),
-    inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.6),
-    inset 2px 0 2px rgba(0, 0, 0, 0.3),
-    inset -2px 0 2px rgba(255, 255, 255, 0.1);
-}
-
-/* Firefox vertical orientation */
-input[type="range"]::-moz-range-track {
-  background: linear-gradient(to right, 
-    #1a1a1a 0%, 
-    #2a2a2a 25%, 
-    #1a1a1a 50%, 
-    #2a2a2a 75%, 
-    #1a1a1a 100%);
-  border: 2px solid #0a0a0a;
-  box-shadow: 
-    inset 0 0 8px rgba(0, 0, 0, 0.8),
-    inset 2px 0 2px rgba(0, 0, 0, 0.5),
-    inset -2px 0 2px rgba(255, 255, 255, 0.05);
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: var(--accent-color);
 }
 
 input[type="color"] {
   width: 100%;
-  height: 40px;
+  height: 35px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
+  background: none;
   cursor: pointer;
 }
 
-/* Fader value display indicator */
-.control-group {
-  position: relative;
-}
-
-input[type="range"] {
-  order: 1;
-}
-
-/* Add grooves to fader track */
-input[type="range"]::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* Color coding for different slider types */
-input[type="range"][id*="intensity"]::-webkit-slider-thumb {
-  border-left: 3px solid #ffaa00;
-}
-
-input[type="range"][id*="intensity"]::-moz-range-thumb {
-  border-left: 3px solid #ffaa00;
-}
-
-input[type="range"][id*="red"]::-webkit-slider-thumb {
-  border-left: 3px solid #ff3333;
-}
-
-input[type="range"][id*="red"]::-moz-range-thumb {
-  border-left: 3px solid #ff3333;
-}
-
-input[type="range"][id*="green"]::-webkit-slider-thumb {
-  border-left: 3px solid #33ff33;
-}
-
-input[type="range"][id*="green"]::-moz-range-thumb {
-  border-left: 3px solid #33ff33;
-}
-
-input[type="range"][id*="blue"]::-webkit-slider-thumb {
-  border-left: 3px solid #3333ff;
-}
-
-input[type="range"][id*="blue"]::-moz-range-thumb {
-  border-left: 3px solid #3333ff;
-}
-
-input[type="range"][id*="size"]::-webkit-slider-thumb {
-  border-left: 3px solid #00aaff;
-}
-
-input[type="range"][id*="size"]::-moz-range-thumb {
-  border-left: 3px solid #00aaff;
-}
-
-input[type="range"][id*="master"]::-webkit-slider-thumb,
-input[type="range"][id*="chase"]::-webkit-slider-thumb {
-  border-left: 3px solid #ffffff;
-}
-
-input[type="range"][id*="master"]::-moz-range-thumb,
-input[type="range"][id*="chase"]::-moz-range-thumb {
-  border-left: 3px solid #ffffff;
-}
-
-/* パラメーター出力エリア */
+/* --- Parameter Output --- */
 .parameter-output {
-  background-color: #2a2a2a;
-  border-radius: 8px;
+  background-color: #252525;
+  border-top: 1px solid var(--border-color);
   padding: 15px;
-  border: 1px solid #444;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  max-height: 35%;
+  min-height: 200px;
   transition: all 0.3s ease;
-  height: 100%;
-  box-sizing: border-box;
 }
 
 .parameter-output.collapsed {
-  max-height: 80px !important;
-  overflow: hidden !important;
-  padding-bottom: 15px !important;
+  max-height: 50px;
+  min-height: 50px;
+  padding-bottom: 0;
+  overflow: hidden;
 }
 
-.parameter-output.collapsed .output-content {
-  display: none !important;
-  height: 0 !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
+.parameter-output.collapsed .output-content,
 .parameter-output.collapsed .output-buttons {
   display: none !important;
-  height: 0 !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-.parameter-output.collapsed .output-header {
-  margin-bottom: 0 !important;
-  padding-bottom: 5px !important;
-  border-bottom: none !important;
 }
 
 .output-header {
-  border-bottom: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
-  margin-bottom: 15px;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
-.output-header h3 {
+.header-content h3 {
   margin: 0;
-  color: #fff;
-  font-size: 18px;
+  font-size: 1rem;
+  color: var(--text-color);
 }
 
 .toggle-panel-btn {
-  background-color: #555;
-  color: #fff;
-  border: 1px solid #777;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 4px 8px;
   border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-}
-
-.toggle-panel-btn:hover {
-  background-color: #666;
-}
-
-.toggle-panel-btn:active {
-  background-color: #444;
 }
 
 .output-buttons {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.output-buttons {
-  display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .output-buttons button {
-  background-color: #444;
-  color: #eee;
-  border: 1px solid #666;
+  background-color: #333;
+  color: #ddd;
+  border: 1px solid #444;
   border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .output-buttons button:hover {
-  background-color: #555;
-}
-
-.output-buttons button:active {
-  background-color: #333;
-}
-
-/* リセットボタンのスタイル */
-.reset-button {
-  background-color: #d32f2f !important;
-  color: #fff !important;
-  border: 1px solid #b71c1c !important;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.7em;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: bold;
-  width: 100%;
-  margin-top: auto;
-}
-
-.reset-button:hover {
-  background-color: #b71c1c !important;
-}
-
-.reset-button:active {
-  background-color: #8b0000 !important;
+  background-color: #444;
+  border-color: #555;
 }
 
 .output-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  display: flex;
+  gap: 10px;
   flex: 1;
-  overflow-y: auto;
-  transition: all 0.3s ease;
-  min-height: 0;
-}
-
-.output-content.collapsed {
-  grid-template-columns: 1fr 0fr;
-}
-
-.output-content.collapsed .log-section {
   overflow: hidden;
-  width: 0;
-  opacity: 0;
 }
 
 .output-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  min-height: 0;
+  overflow: hidden;
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 5px;
 }
 
 .output-section h4 {
-  margin: 0 0 8px 0;
-  color: #ccc;
-  font-size: 14px;
-  border-bottom: 1px solid #555;
-  padding-bottom: 5px;
+  margin: 5px 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
-.log-header {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 8px;
-}
-
-.log-info {
-  color: #888;
-  font-size: 10px;
-  margin-top: 3px;
-}
-
-.log-container {
+#current-params,
+#change-log {
   flex: 1;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-#current-params {
-  background-color: #1a1a1a !important;
-  border: 1px solid #555 !important;
-  border-radius: 4px;
-  padding: 10px !important;
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  color: #00ff00 !important;
   margin: 0;
+  padding: 5px;
+  font-family: "Consolas", monospace;
+  font-size: 0.8rem;
+  color: #0f0;
   white-space: pre-wrap;
-  overflow-y: auto;
-  flex: 1;
-  min-height: 150px;
-  max-height: 300px;
-  display: block !important;
-  visibility: visible !important;
 }
 
 #change-log {
-  background-color: #1a1a1a !important;
-  border: 1px solid #555 !important;
-  border-radius: 4px;
-  padding: 10px !important;
-  font-family: "Courier New", monospace;
-  font-size: 11px;
-  color: #ffff00 !important;
-  overflow-y: auto !important;
-  flex: 1;
-  min-height: 150px;
-  max-height: none;
-  height: 100%;
-  display: block !important;
-  visibility: visible !important;
+  color: #ff0;
 }
 
 .log-entry {
-  margin-bottom: 5px;
-  padding: 5px 8px;
-  border-left: 2px solid #666;
-  background-color: rgba(255, 255, 255, 0.02);
-  border-radius: 3px;
+  padding: 2px 0;
+  border-bottom: 1px solid #333;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-}
-
-.log-entry.new {
-  border-left-color: #0f0;
-  background-color: rgba(0, 255, 0, 0.1);
 }
 
 .log-entry-text {
   flex: 1;
-  font-size: 11px;
   word-break: break-all;
-  color: #ffff00 !important;
 }
 
 .log-entry-revert {
@@ -995,14 +909,52 @@ input[type="range"][id*="chase"]::-moz-range-thumb {
   font-size: 9px;
   color: #fff;
   cursor: pointer;
+  margin-left: 5px;
+}
+
+.reset-button {
+  background-color: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
   transition: background-color 0.2s;
-  white-space: nowrap;
+  width: 100%;
+  font-weight: bold;
+  margin-top: 5px;
 }
 
-.log-entry-revert:hover {
-  background-color: #555;
+.reset-button:hover {
+  background-color: #b71c1c;
 }
 
-.log-entry-revert:active {
-  background-color: #333;
+/* --- Back Light Beam Effect --- */
+.back-light .beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px; /* ビームの幅を少し太く */
+  height: 600px; /* ビームを長く */
+  transform-origin: top center;
+  /* 観客席（手前・上方向）に向かって伸びるように角度を調整 */
+  /* 90degで手前（水平）、105degで少し上向き（カメラ目線） */
+  transform: translate(-50%, 0%) rotateX(105deg);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 20;
+  filter: blur(8px);
+  border-radius: 50% 50% 0 0;
+  mix-blend-mode: screen;
+}
+
+.back-light.active .beam {
+  /* JS�Ő��䂳��邽�߁A�����ł͊�{�X�^�C���̂� */
 }
