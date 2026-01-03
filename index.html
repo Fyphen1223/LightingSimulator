@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>照明シミュレーター</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="chase-styles.css" />
   </head>
   <body>
     <div class="scene">
@@ -71,10 +72,22 @@
     <div class="resizer" id="dragMe"></div>
 
     <div class="right-panel">
-      <div class="controls">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="main-tab">MASTER</button>
+        <button class="tab-btn" data-tab="chase-tab">CHASE</button>
+      </div>
+      <div class="controls tab-content active" id="main-tab">
         <!-- Master & Chase Control -->
         <h3>Master & Chase Control</h3>
-        <div class="console-row" style="overflow: visible; min-height: auto">
+        <div
+          class="console-row"
+          style="
+            overflow: visible;
+            min-height: auto;
+            box-shadow: none;
+            border: none;
+          "
+        >
           <!-- Master Fader -->
           <div class="fader-container">
             <label class="fader-label" for="master-fader">Master</label>
@@ -90,6 +103,7 @@
               />
             </div>
             <span id="master-value" class="fader-value">100%</span>
+            <button id="master-full-btn" class="full-button">FULL</button>
           </div>
 
           <!-- Chase Fader -->
@@ -102,12 +116,13 @@
                 class="vertical-fader"
                 min="0"
                 max="100"
-                value="0"
+                value="100"
                 step="1"
                 disabled
               />
             </div>
-            <span id="chase-value" class="fader-value">0%</span>
+            <span id="chase-value" class="fader-value">100%</span>
+            <button id="chase-full-btn" class="full-button">FULL</button>
           </div>
 
           <div class="control-group" style="justify-content: center">
@@ -794,6 +809,87 @@
                 "
               />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls tab-content" id="chase-tab" style="display: none">
+        <!-- Chase Tab Content -->
+        <h3>Chase Control</h3>
+
+        <div class="chase-controls-container">
+          <!-- 再生コントロール -->
+          <div class="playback-section">
+            <div class="playback-buttons">
+              <button id="chase-play" class="play-btn">▶ 再生</button>
+              <button id="chase-stop" class="stop-btn">■ 停止</button>
+            </div>
+            <label class="loop-toggle">
+              <input type="checkbox" id="chase-loop" checked />
+              <span>Loop</span>
+            </label>
+          </div>
+
+          <!-- 時間設定 -->
+          <div class="timing-section">
+            <div class="timing-input">
+              <label>Step Time (s)</label>
+              <input
+                type="number"
+                id="chase-duration"
+                value="1.00"
+                step="0.01"
+                min="0.01"
+              />
+            </div>
+            <div class="timing-input">
+              <label>Fade Time (s)</label>
+              <input
+                type="number"
+                id="chase-fade"
+                value="0.00"
+                step="0.01"
+                min="0.00"
+              />
+            </div>
+          </div>
+
+          <!-- ステップ操作 -->
+          <div class="step-actions">
+            <button id="add-step-btn" class="action-btn add-btn">
+              ＋ 現在のシーンを追加
+            </button>
+            <button id="delete-step-btn" class="action-btn delete-btn" disabled>
+              選択を削除
+            </button>
+          </div>
+
+          <!-- ステップリスト -->
+          <div class="step-list-wrapper">
+            <div class="step-list-header">
+              <span>#</span>
+              <span>Time</span>
+              <span>Fade</span>
+            </div>
+            <ul id="step-list" class="step-list">
+              <!-- ステップがここに追加される -->
+            </ul>
+          </div>
+
+          <!-- ファイル操作 -->
+          <div class="file-actions">
+            <button id="import-chase-btn" class="file-btn">
+              Import .chase
+            </button>
+            <button id="export-chase-btn" class="file-btn">
+              Export .chase
+            </button>
+            <input
+              type="file"
+              id="chase-file-input"
+              accept=".chase"
+              style="display: none"
+            />
           </div>
         </div>
       </div>

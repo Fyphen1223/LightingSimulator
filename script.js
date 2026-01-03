@@ -5,6 +5,59 @@ document.addEventListener("DOMContentLoaded", () => {
   const chaseFader = document.getElementById("chase-fader");
   const chaseValue = document.getElementById("chase-value");
 
+  // FULLボタン要素
+  const masterFullBtn = document.getElementById("master-full-btn");
+  const chaseFullBtn = document.getElementById("chase-full-btn");
+
+  let isMasterFull = false;
+  let isChaseFull = false;
+
+  // FULLボタンの状態更新関数
+  function updateFullButtonState() {
+    // Master FULLボタン
+    if (isMasterFull) {
+      masterFullBtn.classList.add("active");
+      masterFullBtn.classList.remove("blinking");
+    } else {
+      masterFullBtn.classList.remove("active");
+      // フェーダーが100未満なら点滅させる
+      if (parseInt(masterFader.value) < 100) {
+        masterFullBtn.classList.add("blinking");
+      } else {
+        masterFullBtn.classList.remove("blinking");
+      }
+    }
+
+    // Chase FULLボタン
+    if (isChaseFull) {
+      chaseFullBtn.classList.add("active");
+      chaseFullBtn.classList.remove("blinking");
+    } else {
+      chaseFullBtn.classList.remove("active");
+      // フェーダーが100未満なら点滅させる
+      if (parseInt(chaseFader.value) < 100) {
+        chaseFullBtn.classList.add("blinking");
+      } else {
+        chaseFullBtn.classList.remove("blinking");
+      }
+    }
+  }
+
+  // FULLボタンのイベントリスナー
+  masterFullBtn.addEventListener("click", () => {
+    isMasterFull = !isMasterFull;
+    updateFullButtonState();
+    updateAllLights();
+    updateStageColors();
+  });
+
+  chaseFullBtn.addEventListener("click", () => {
+    isChaseFull = !isChaseFull;
+    updateFullButtonState();
+    updateAllLights();
+    updateStageColors();
+  });
+
   // スポットライト要素
   const leftSpotlight = document.getElementById("left-spotlight");
   const centerSpotlight = document.getElementById("center-spotlight");
@@ -26,6 +79,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // 舞台奥ライト要素
   const backLights = document.querySelectorAll(".back-light");
 
+  // --- Chase 機能の状態変数 (スコープの先頭に移動) ---
+  let chaseSteps = [];
+  let isPlaying = false;
+  let currentStepIndex = -1;
+  let chaseTimer = null;
+  let selectedStepIndex = -1;
+
+  // タブ切り替え機能
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      // 全てのタブボタンからactiveクラスを削除
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      // クリックされたボタンにactiveクラスを追加
+      btn.classList.add("active");
+
+      // 全てのタブコンテンツを非表示
+      tabContents.forEach((content) => content.classList.remove("active"));
+      // 対象のタブコンテンツを表示
+      const tabId = btn.getAttribute("data-tab");
+      document.getElementById(tabId).classList.add("active");
+    });
+  });
+
   // ビーム要素を追加
   backLights.forEach((light) => {
     if (!light.querySelector(".beam")) {
@@ -46,8 +125,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateSpotlight(spotlight, prefix, fixedX = 0, fixedY = 0) {
     const size = document.getElementById(`${prefix}-size`).value;
     const intensity = document.getElementById(`${prefix}-intensity`).value;
-    const masterLevel = masterFader.value / 100; // Masterフェーダーレベル
-    const finalIntensity = (intensity / 100) * masterLevel; // Masterで調整
+
+    const masterLevel = isMasterFull ? 1 : masterFader.value / 100; // Masterフェーダーレベル
+    const chaseLevel = isChaseFull ? 1 : isPlaying ? chaseFader.value / 100 : 1; // Chaseフェーダーレベル
+    const finalIntensity = (intensity / 100) * masterLevel * chaseLevel;
 
     spotlight.style.width = `${size}px`;
     spotlight.style.height = `${size}px`;
@@ -65,8 +146,11 @@ document.addEventListener("DOMContentLoaded", () => {
     position
   ) {
     const intensity = document.getElementById(intensityId).value;
-    const masterLevel = masterFader.value / 100; // Masterフェーダーレベル
-    const finalIntensity = (intensity / 100) * masterLevel; // Masterで調整
+
+    const masterLevel = isMasterFull ? 1 : masterFader.value / 100; // Masterフェーダーレベル
+    const chaseLevel = isChaseFull ? 1 : isPlaying ? chaseFader.value / 100 : 1; // Chaseフェーダーレベル
+    const finalIntensity = (intensity / 100) * masterLevel * chaseLevel;
+
     const r = document.getElementById(redId).value;
     const g = document.getElementById(greenId).value;
     const b = document.getElementById(blueId).value;
@@ -86,8 +170,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const intensity = document.getElementById(
       `group${groupNumber}-intensity`
     ).value;
-    const masterLevel = masterFader.value / 100;
-    const finalIntensity = (intensity / 100) * masterLevel;
+
+    const masterLevel = isMasterFull ? 1 : masterFader.value / 100;
+    const chaseLevel = isChaseFull ? 1 : isPlaying ? chaseFader.value / 100 : 1;
+    const finalIntensity = (intensity / 100) * masterLevel * chaseLevel;
+
     const r = document.getElementById(`group${groupNumber}-red`).value;
     const g = document.getElementById(`group${groupNumber}-green`).value;
     const b = document.getElementById(`group${groupNumber}-blue`).value;
@@ -241,10 +328,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const floorBlue = document.getElementById("floor-blue").value;
 
     // Masterフェーダーの影響を適用
-    const masterLevel = masterFader.value / 100;
-    const r = Math.floor(floorRed * masterLevel);
-    const g = Math.floor(floorGreen * masterLevel);
-    const b = Math.floor(floorBlue * masterLevel);
+    const masterLevel = isMasterFull ? 1 : masterFader.value / 100;
+    const chaseLevel = isChaseFull ? 1 : isPlaying ? chaseFader.value / 100 : 1;
+    const finalLevel = masterLevel * chaseLevel;
+
+    const r = Math.floor(floorRed * finalLevel);
+    const g = Math.floor(floorGreen * finalLevel);
+    const b = Math.floor(floorBlue * finalLevel);
 
     // CSS変数を更新
     document.documentElement.style.setProperty(
@@ -266,6 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // LocalStorage機能
   const STORAGE_KEY = "lightingSimulator_settings";
   const LOG_STORAGE_KEY = "lightingSimulator_logs";
+  const CHASE_STORAGE_KEY = "lightingSimulator_chase";
 
   // LocalStorageに設定を保存
   function saveToLocalStorage() {
@@ -274,6 +365,28 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
     } catch (error) {
       console.error("LocalStorage保存エラー:", error);
+    }
+  }
+
+  // ChaseデータをLocalStorageに保存
+  function saveChaseToLocalStorage() {
+    try {
+      localStorage.setItem(CHASE_STORAGE_KEY, JSON.stringify(chaseSteps));
+    } catch (error) {
+      console.error("Chase保存エラー:", error);
+    }
+  }
+
+  // ChaseデータをLocalStorageから復元
+  function loadChaseFromLocalStorage() {
+    try {
+      const savedChase = localStorage.getItem(CHASE_STORAGE_KEY);
+      if (savedChase) {
+        chaseSteps = JSON.parse(savedChase);
+        updateStepListUI();
+      }
+    } catch (error) {
+      console.error("Chase読み込みエラー:", error);
     }
   }
 
@@ -346,6 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(LOG_STORAGE_KEY);
+      localStorage.removeItem(CHASE_STORAGE_KEY);
     } catch (error) {
       console.error("LocalStorageクリアエラー:", error);
     }
@@ -929,8 +1043,10 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", () => {
       if (input.id === "master-fader") {
         updateMasterValue();
+        updateFullButtonState(); // FULLボタンの状態更新
       } else if (input.id === "chase-fader") {
         updateChaseValue();
+        updateFullButtonState(); // FULLボタンの状態更新
       } else if (input.id.startsWith("floor-")) {
         updateStageColors();
       }
@@ -1085,6 +1201,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // LocalStorageから設定とログを復元
   const hasLoadedSettings = loadFromLocalStorage();
   loadLogsFromLocalStorage();
+  loadChaseFromLocalStorage();
 
   // UIスタイルを確実に適用
   ensureUIStyles();
@@ -1142,5 +1259,247 @@ document.addEventListener("DOMContentLoaded", () => {
       resizer.classList.remove("resizing");
       document.body.style.cursor = "default";
     }
+  });
+
+  // --- Chase 機能の実装 ---
+  const chasePlayBtn = document.getElementById("chase-play");
+  const chaseStopBtn = document.getElementById("chase-stop");
+  const chaseLoopCheck = document.getElementById("chase-loop");
+  const chaseDurationInput = document.getElementById("chase-duration");
+  const chaseFadeInput = document.getElementById("chase-fade");
+  const addStepBtn = document.getElementById("add-step-btn");
+  const deleteStepBtn = document.getElementById("delete-step-btn");
+  const stepList = document.getElementById("step-list");
+  const importChaseBtn = document.getElementById("import-chase-btn");
+  const exportChaseBtn = document.getElementById("export-chase-btn");
+  const chaseFileInput = document.getElementById("chase-file-input");
+  // const chaseFader = document.getElementById("chase-fader"); // 既に定義済み
+
+  // 現在の照明状態を取得する関数
+  function captureCurrentState() {
+    const state = {};
+    // 対象とするinput要素を取得 (Master, Chaseフェーダー以外)
+    const inputs = document.querySelectorAll(
+      '.controls input[type="range"], .controls input[type="color"]'
+    );
+    inputs.forEach((input) => {
+      if (input.id !== "master-fader" && input.id !== "chase-fader") {
+        state[input.id] = input.value;
+      }
+    });
+    return state;
+  }
+
+  // 照明状態を適用する関数
+  function applyState(state) {
+    for (const [id, value] of Object.entries(state)) {
+      const input = document.getElementById(id);
+      if (input) {
+        input.value = value;
+        // inputイベントを発火させて更新関数を実行させる
+        input.dispatchEvent(new Event("input"));
+      }
+    }
+  }
+
+  // ステップリストのUI更新
+  function updateStepListUI() {
+    stepList.innerHTML = "";
+    chaseSteps.forEach((step, index) => {
+      const li = document.createElement("li");
+      li.className = "step-item";
+      if (index === selectedStepIndex) li.classList.add("active");
+      if (index === currentStepIndex && isPlaying) li.classList.add("playing");
+
+      li.innerHTML = `
+        <span>${index + 1}</span>
+        <span>${step.duration}s</span>
+        <span>${step.fade}s</span>
+      `;
+
+      li.addEventListener("click", () => {
+        selectedStepIndex = index;
+        deleteStepBtn.disabled = false;
+        updateStepListUI();
+        // 選択したステップの状態をプレビュー適用（再生中でなければ）
+        if (!isPlaying) {
+          applyState(step.state);
+        }
+      });
+
+      stepList.appendChild(li);
+    });
+
+    if (selectedStepIndex === -1) {
+      deleteStepBtn.disabled = true;
+    }
+  }
+
+  // ステップ追加
+  addStepBtn.addEventListener("click", () => {
+    const state = captureCurrentState();
+    const duration = parseFloat(chaseDurationInput.value);
+    const fade = parseFloat(chaseFadeInput.value);
+
+    chaseSteps.push({
+      state: state,
+      duration: duration,
+      fade: fade,
+    });
+
+    updateStepListUI();
+    saveChaseToLocalStorage();
+  });
+
+  // ステップ削除
+  deleteStepBtn.addEventListener("click", () => {
+    if (selectedStepIndex !== -1) {
+      chaseSteps.splice(selectedStepIndex, 1);
+      selectedStepIndex = -1;
+      updateStepListUI();
+      saveChaseToLocalStorage();
+    }
+  });
+
+  // 再生処理
+  function playNextStep() {
+    if (chaseSteps.length === 0) return;
+
+    currentStepIndex++;
+    if (currentStepIndex >= chaseSteps.length) {
+      if (chaseLoopCheck.checked) {
+        currentStepIndex = 0;
+      } else {
+        stopChase();
+        return;
+      }
+    }
+
+    const step = chaseSteps[currentStepIndex];
+    updateStepListUI();
+
+    // フェード処理
+    if (step.fade > 0) {
+      const startState = captureCurrentState();
+      const endState = step.state;
+      const startTime = performance.now();
+      const fadeDuration = step.fade * 1000;
+
+      function animateFade(currentTime) {
+        if (!isPlaying || currentStepIndex !== chaseSteps.indexOf(step)) return;
+
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / fadeDuration, 1);
+
+        const interpolatedState = {};
+        for (const key in endState) {
+          if (startState[key] !== undefined) {
+            // 数値の場合（range）
+            if (!isNaN(startState[key]) && !startState[key].startsWith("#")) {
+              const startVal = parseFloat(startState[key]);
+              const endVal = parseFloat(endState[key]);
+              interpolatedState[key] =
+                startVal + (endVal - startVal) * progress;
+            }
+            // 色の場合（color）は補間が難しいので、とりあえず終了値をセット（必要ならRGB分解して補間）
+            else {
+              interpolatedState[key] = endState[key];
+            }
+          }
+        }
+        applyState(interpolatedState);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateFade);
+        }
+      }
+      requestAnimationFrame(animateFade);
+    } else {
+      applyState(step.state);
+    }
+
+    // 次のステップへのタイマー
+    chaseTimer = setTimeout(playNextStep, step.duration * 1000);
+  }
+
+  function startChase() {
+    if (chaseSteps.length === 0) return;
+    isPlaying = true;
+    currentStepIndex = -1;
+    chasePlayBtn.textContent = "|| 一時停止";
+    chasePlayBtn.classList.add("playing");
+
+    // Chaseフェーダーを有効化
+    chaseFader.disabled = false;
+    // Masterフェーダーを無効化（必要なら）
+    // masterFader.disabled = true;
+
+    playNextStep();
+  }
+
+  function stopChase() {
+    isPlaying = false;
+    clearTimeout(chaseTimer);
+    currentStepIndex = -1;
+    chasePlayBtn.textContent = "▶ 再生";
+    chasePlayBtn.classList.remove("playing");
+    updateStepListUI();
+
+    // Chaseフェーダーを無効化
+    chaseFader.disabled = true;
+    // masterFader.disabled = false;
+  }
+
+  chasePlayBtn.addEventListener("click", () => {
+    if (isPlaying) {
+      // 一時停止の挙動にするか、停止にするか。ここでは停止にする
+      stopChase();
+    } else {
+      startChase();
+    }
+  });
+
+  chaseStopBtn.addEventListener("click", stopChase);
+
+  // Export
+  exportChaseBtn.addEventListener("click", () => {
+    const data = JSON.stringify(chaseSteps, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lighting_chase.chase";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Import
+  importChaseBtn.addEventListener("click", () => {
+    chaseFileInput.click();
+  });
+
+  chaseFileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (Array.isArray(data)) {
+          chaseSteps = data;
+          updateStepListUI();
+          saveChaseToLocalStorage();
+          alert("Chaseファイルを読み込みました");
+        } else {
+          alert("無効なChaseファイル形式です");
+        }
+      } catch (error) {
+        alert("ファイルの読み込みに失敗しました");
+      }
+    };
+    reader.readAsText(file);
+    // inputをリセットして同じファイルを再読み込み可能にする
+    chaseFileInput.value = "";
   });
 });
