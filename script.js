@@ -1198,29 +1198,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // LocalStorageから設定とログを復元
-  const hasLoadedSettings = loadFromLocalStorage();
-  loadLogsFromLocalStorage();
-  loadChaseFromLocalStorage();
-
-  // UIスタイルを確実に適用
-  ensureUIStyles();
-
-  // LocalStorageに保存された設定がない場合のみデフォルト値を適用
-  if (!hasLoadedSettings) {
-    updateMasterValue();
-    updateChaseValue();
-    updateStageColors();
-    updateAllLights();
-    updateParameterDisplay();
-  } else {
-    // LocalStorageから復元した場合もUI更新は必要
-    updateMasterValue();
-    updateChaseValue();
-    updateStageColors();
-    updateAllLights();
-    updateParameterDisplay();
-  }
+  // LocalStorageからの復元は、全ての変数定義が終わった後（ファイルの最後）で行います
 
   // 定期的にスタイルをチェック（保険として）
   setInterval(ensureUIStyles, 5000);
@@ -1268,6 +1246,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chaseDurationInput = document.getElementById("chase-duration");
   const chaseFadeInput = document.getElementById("chase-fade");
   const addStepBtn = document.getElementById("add-step-btn");
+  const updateStepBtn = document.getElementById("update-step-btn");
   const deleteStepBtn = document.getElementById("delete-step-btn");
   const stepList = document.getElementById("step-list");
   const importChaseBtn = document.getElementById("import-chase-btn");
@@ -1320,6 +1299,12 @@ document.addEventListener("DOMContentLoaded", () => {
       li.addEventListener("click", () => {
         selectedStepIndex = index;
         deleteStepBtn.disabled = false;
+        updateStepBtn.disabled = false;
+
+        // 選択したステップの値を入力欄に反映
+        chaseDurationInput.value = step.duration;
+        chaseFadeInput.value = step.fade;
+
         updateStepListUI();
         // 選択したステップの状態をプレビュー適用（再生中でなければ）
         if (!isPlaying) {
@@ -1332,8 +1317,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (selectedStepIndex === -1) {
       deleteStepBtn.disabled = true;
+      updateStepBtn.disabled = true;
+    } else {
+      deleteStepBtn.disabled = false;
+      updateStepBtn.disabled = false;
     }
   }
+
+  // ステップ更新
+  updateStepBtn.addEventListener("click", () => {
+    if (selectedStepIndex !== -1) {
+      const state = captureCurrentState();
+      const duration = parseFloat(chaseDurationInput.value);
+      const fade = parseFloat(chaseFadeInput.value);
+
+      chaseSteps[selectedStepIndex] = {
+        state: state,
+        duration: duration,
+        fade: fade,
+      };
+
+      updateStepListUI();
+      saveChaseToLocalStorage();
+
+      // 視覚的なフィードバック
+      const originalText = updateStepBtn.innerText;
+      updateStepBtn.innerText = "更新完了!";
+      setTimeout(() => {
+        updateStepBtn.innerText = originalText;
+      }, 1000);
+    }
+  });
 
   // ステップ追加
   addStepBtn.addEventListener("click", () => {
@@ -1502,4 +1516,31 @@ document.addEventListener("DOMContentLoaded", () => {
     // inputをリセットして同じファイルを再読み込み可能にする
     chaseFileInput.value = "";
   });
+
+  // --- 初期化処理の実行 ---
+  // 全ての変数定義が終わったここで実行することで、TDZ(Temporal Dead Zone)エラーを防ぐ
+
+  // LocalStorageから設定とログを復元
+  const hasLoadedSettings = loadFromLocalStorage();
+  loadLogsFromLocalStorage();
+  loadChaseFromLocalStorage();
+
+  // UIスタイルを確実に適用
+  ensureUIStyles();
+
+  // LocalStorageに保存された設定がない場合のみデフォルト値を適用
+  if (!hasLoadedSettings) {
+    updateMasterValue();
+    updateChaseValue();
+    updateStageColors();
+    updateAllLights();
+    updateParameterDisplay();
+  } else {
+    // LocalStorageから復元した場合もUI更新は必要
+    updateMasterValue();
+    updateChaseValue();
+    updateStageColors();
+    updateAllLights();
+    updateParameterDisplay();
+  }
 });

@@ -198,3 +198,20 @@
 .file-btn:hover {
   background: #505050;
 }
+
+.update-btn {
+  background-color: #ff9800;
+  color: white;
+}
+
+.update-btn:hover {
+  background-color: #f57c00;
+}
+
+.update-btn:disabled {
+  background-color: #424242;
+  color: #aaa;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
