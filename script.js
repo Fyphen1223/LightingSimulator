@@ -115,10 +115,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function hexToRgb(hex) {
+    if (!hex || typeof hex !== "string" || hex.length < 7) {
+      return { r: 0, g: 0, b: 0 };
+    }
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    return { r, g, b };
+    return {
+      r: isNaN(r) ? 0 : r,
+      g: isNaN(g) ? 0 : g,
+      b: isNaN(b) ? 0 : b,
+    };
   }
 
   // スポットライト更新関数
@@ -222,59 +229,66 @@ document.addEventListener("DOMContentLoaded", () => {
     updateBackLightGroup(3);
   }
 
-  // 全ライト更新関数
+  // 全ライト更新関数（スロットリング付き）
+  let updateLightsTimeout = null;
   function updateAllLights() {
-    // スポットライト更新（固定位置）
-    updateSpotlight(leftSpotlight, "left", -250, 0); // 左スポットライト
-    updateSpotlight(centerSpotlight, "center", 0, 0); // 中央スポットライト
-    updateSpotlight(rightSpotlight, "right", 250, 0); // 右スポットライト
+    if (updateLightsTimeout) return;
 
-    // 新しいスポットライト更新
-    updateSpotlight(hostSpotlight, "host", 200, 150); // 司会用（右側手前）
-    updateSpotlight(backRightSpotlight, "back-right", 250, -200); // 右奥
-    updateSpotlight(backLeftSpotlight, "back-left", -250, -200); // 左奥
-    updateSpotlight(frontLeftSpotlight, "front-left", -200, 150); // 手前左
-    updateSpotlight(frontRightSpotlight, "front-right", 200, 150); // 手前右
+    updateLightsTimeout = requestAnimationFrame(() => {
+      // スポットライト更新（固定位置）
+      updateSpotlight(leftSpotlight, "left", -250, 0); // 左スポットライト
+      updateSpotlight(centerSpotlight, "center", 0, 0); // 中央スポットライト
+      updateSpotlight(rightSpotlight, "right", 250, 0); // 右スポットライト
 
-    // ホリゾントライト更新
-    updateHorizonLight(
-      upperLeftHorizon,
-      "upper-left-intensity",
-      "upper-left-red",
-      "upper-left-green",
-      "upper-left-blue",
-      "upper"
-    );
-    updateHorizonLight(
-      upperRightHorizon,
-      "upper-right-intensity",
-      "upper-right-red",
-      "upper-right-green",
-      "upper-right-blue",
-      "upper"
-    );
-    updateHorizonLight(
-      lowerLeftHorizon,
-      "lower-left-intensity",
-      "lower-left-red",
-      "lower-left-green",
-      "lower-left-blue",
-      "lower"
-    );
-    updateHorizonLight(
-      lowerRightHorizon,
-      "lower-right-intensity",
-      "lower-right-red",
-      "lower-right-green",
-      "lower-right-blue",
-      "lower"
-    );
+      // 新しいスポットライト更新
+      updateSpotlight(hostSpotlight, "host", 200, 150); // 司会用（右側手前）
+      updateSpotlight(backRightSpotlight, "back-right", 250, -200); // 右奥
+      updateSpotlight(backLeftSpotlight, "back-left", -250, -200); // 左奥
+      updateSpotlight(frontLeftSpotlight, "front-left", -200, 150); // 手前左
+      updateSpotlight(frontRightSpotlight, "front-right", 200, 150); // 手前右
 
-    // 舞台奥ライト更新
-    updateAllBackLights();
+      // ホリゾントライト更新
+      updateHorizonLight(
+        upperLeftHorizon,
+        "upper-left-intensity",
+        "upper-left-red",
+        "upper-left-green",
+        "upper-left-blue",
+        "upper"
+      );
+      updateHorizonLight(
+        upperRightHorizon,
+        "upper-right-intensity",
+        "upper-right-red",
+        "upper-right-green",
+        "upper-right-blue",
+        "upper"
+      );
+      updateHorizonLight(
+        lowerLeftHorizon,
+        "lower-left-intensity",
+        "lower-left-red",
+        "lower-left-green",
+        "lower-left-blue",
+        "lower"
+      );
+      updateHorizonLight(
+        lowerRightHorizon,
+        "lower-right-intensity",
+        "lower-right-red",
+        "lower-right-green",
+        "lower-right-blue",
+        "lower"
+      );
 
-    // ステージカラー更新
-    updateStageColors();
+      // 舞台奥ライト更新
+      updateAllBackLights();
+
+      // ステージカラー更新
+      updateStageColors();
+
+      updateLightsTimeout = null;
+    });
   }
 
   // Masterフェーダー値表示更新
@@ -589,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = getCurrentParameters();
     currentParamsElement.textContent = JSON.stringify(params, null, 2);
 
-    saveToLocalStorage(); // 設定をLocalStorageに自動保存
+    // saveToLocalStorage(); // 設定をLocalStorageに自動保存 (パフォーマンスのため削除、イベントリスナーで保存)
   }
 
   // 変更ログに追加（戻し機能付き）
@@ -603,6 +617,15 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     changeHistory.push(logEntry);
+
+    // ログの最大件数を制限（例: 100件）
+    if (changeHistory.length > 100) {
+      changeHistory.shift();
+      if (changeLogElement.firstChild) {
+        changeLogElement.removeChild(changeLogElement.firstChild);
+      }
+    }
+
     saveLogsToLocalStorage(); // ログをLocalStorageに保存
 
     const logDiv = document.createElement("div");
@@ -632,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function revertToValue(inputId, value) {
     const input = document.getElementById(inputId);
     if (input) {
+      const currentValue = input.value;
       input.value = value;
 
       // 対応する更新関数を呼び出し
@@ -645,9 +669,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       updateAllLights();
       updateParameterDisplay();
+      saveToLocalStorage();
+
+      // previousValuesを更新
+      previousValues[inputId] = value;
 
       // 戻し操作もログに記録
-      addToChangeLog(inputId + " (戻し)", input.value, value);
+      addToChangeLog(inputId + " (戻し)", currentValue, value);
     }
   }
 
@@ -705,7 +733,9 @@ document.addEventListener("DOMContentLoaded", () => {
       "#" +
       [r, g, b]
         .map((x) => {
-          const hex = parseInt(x).toString(16);
+          const val = parseInt(x);
+          if (isNaN(val)) return "00";
+          const hex = val.toString(16);
           return hex.length === 1 ? "0" + hex : hex;
         })
         .join("")
@@ -870,6 +900,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (success) {
           importButton.textContent = "読込完了!";
           addToChangeLog("JSON読込", "ファイル", file.name);
+          saveToLocalStorage();
           setTimeout(() => {
             importButton.textContent = "JSON読込";
           }, 2000);
@@ -1017,6 +1048,12 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAllLights();
       updateAllFaderValues();
       updateParameterDisplay();
+      saveToLocalStorage();
+
+      // previousValuesを更新（リセット後の値を基準にする）
+      document.querySelectorAll(".controls input").forEach((input) => {
+        previousValues[input.id] = input.value;
+      });
 
       resetButton.textContent = "リセット完了!";
       setTimeout(() => {
@@ -1037,6 +1074,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // ドラッグ開始時
     input.addEventListener("mousedown", () => {
       dragStates[input.id] = true;
+      // 現在の値を記録（Chaseなどで変更されている可能性があるため）
+      previousValues[input.id] = input.value;
+    });
+
+    // フォーカス時（キーボード操作開始時）
+    input.addEventListener("focus", () => {
+      previousValues[input.id] = input.value;
     });
 
     // ドラッグ中（リアルタイム更新のみ、ログは出力しない）
@@ -1047,9 +1091,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (input.id === "chase-fader") {
         updateChaseValue();
         updateFullButtonState(); // FULLボタンの状態更新
-      } else if (input.id.startsWith("floor-")) {
-        updateStageColors();
       }
+      // floor-系の更新はupdateAllLights内のupdateStageColorsで行われるため、ここでは呼び出さない
+
       updateAllLights();
       updateParameterDisplay();
     });
@@ -1063,6 +1107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (oldValue !== newValue) {
           addToChangeLog(input.id, oldValue, newValue);
           previousValues[input.id] = newValue;
+          saveToLocalStorage(); // 設定を保存
         }
 
         dragStates[input.id] = false;
@@ -1077,6 +1122,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (oldValue !== newValue) {
         addToChangeLog(input.id, oldValue, newValue);
         previousValues[input.id] = newValue;
+        saveToLocalStorage(); // 設定を保存
       }
     });
 
@@ -1084,6 +1130,22 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         input.blur(); // blurイベントを発生させる
+      }
+    });
+
+    // 変更確定時（カラーピッカーやその他の入力のバックアップ）
+    input.addEventListener("change", () => {
+      // changeイベントはblurやmouseupより後に発生することがあるため、
+      // ここでもログを取るが、重複を防ぐ必要がある。
+      // ただし、mouseup/blurで既に処理されている場合はoldValue === newValueになるはず。
+
+      const oldValue = previousValues[input.id];
+      const newValue = input.value;
+
+      if (oldValue !== newValue) {
+        addToChangeLog(input.id, oldValue, newValue);
+        previousValues[input.id] = newValue;
+        saveToLocalStorage(); // 設定を保存
       }
     });
   });
@@ -1270,14 +1332,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 照明状態を適用する関数
-  function applyState(state) {
+  function applyState(state, suppressEvents = false) {
     for (const [id, value] of Object.entries(state)) {
       const input = document.getElementById(id);
       if (input) {
         input.value = value;
-        // inputイベントを発火させて更新関数を実行させる
-        input.dispatchEvent(new Event("input"));
+        if (!suppressEvents) {
+          // inputイベントを発火させて更新関数を実行させる
+          input.dispatchEvent(new Event("input"));
+        } else {
+          // 手動でUI更新
+          if (input.type === "range") {
+            updateFaderValue(input);
+          }
+          // 特殊な更新が必要な場合
+          if (input.id === "master-fader") {
+            updateMasterValue();
+            updateFullButtonState();
+          } else if (input.id === "chase-fader") {
+            updateChaseValue();
+            updateFullButtonState();
+          }
+        }
       }
+    }
+
+    if (suppressEvents) {
+      updateStageColors();
+      updateAllLights();
     }
   }
 
@@ -1290,10 +1372,20 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index === selectedStepIndex) li.classList.add("active");
       if (index === currentStepIndex && isPlaying) li.classList.add("playing");
 
+      // 名前があれば表示、なければ番号
+      const displayName = step.name ? step.name : `Scene ${index + 1}`;
+
       li.innerHTML = `
-        <span>${index + 1}</span>
-        <span>${step.duration}s</span>
-        <span>${step.fade}s</span>
+        <span style="flex: 0 0 25px;">${index + 1}</span>
+        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${displayName}">${displayName}</span>
+        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${
+          step.trigger || ""
+        }">${step.trigger || "-"}</span>
+        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${
+          step.memo || ""
+        }">${step.memo || "-"}</span>
+        <span style="flex: 0 0 40px;">${step.duration}s</span>
+        <span style="flex: 0 0 40px;">${step.fade}s</span>
       `;
 
       li.addEventListener("click", () => {
@@ -1304,6 +1396,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // 選択したステップの値を入力欄に反映
         chaseDurationInput.value = step.duration;
         chaseFadeInput.value = step.fade;
+
+        // メタデータも反映
+        document.getElementById("chase-step-name").value = step.name || "";
+        document.getElementById("chase-step-trigger").value =
+          step.trigger || "";
+        document.getElementById("chase-step-memo").value = step.memo || "";
 
         updateStepListUI();
         // 選択したステップの状態をプレビュー適用（再生中でなければ）
@@ -1318,6 +1416,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedStepIndex === -1) {
       deleteStepBtn.disabled = true;
       updateStepBtn.disabled = true;
+      // 入力欄クリア
+      document.getElementById("chase-step-name").value = "";
+      document.getElementById("chase-step-trigger").value = "";
+      document.getElementById("chase-step-memo").value = "";
     } else {
       deleteStepBtn.disabled = false;
       updateStepBtn.disabled = false;
@@ -1328,13 +1430,26 @@ document.addEventListener("DOMContentLoaded", () => {
   updateStepBtn.addEventListener("click", () => {
     if (selectedStepIndex !== -1) {
       const state = captureCurrentState();
-      const duration = parseFloat(chaseDurationInput.value);
-      const fade = parseFloat(chaseFadeInput.value);
+      let duration = parseFloat(chaseDurationInput.value);
+      let fade = parseFloat(chaseFadeInput.value);
+      const name = document.getElementById("chase-step-name").value;
+      const trigger = document.getElementById("chase-step-trigger").value;
+      const memo = document.getElementById("chase-step-memo").value;
+
+      // バリデーションと丸め処理
+      if (isNaN(duration) || duration < 0.01) duration = 0.01;
+      duration = Math.round(duration * 100) / 100; // 小数点第2位で四捨五入
+
+      if (isNaN(fade) || fade < 0) fade = 0;
+      fade = Math.round(fade * 100) / 100; // 小数点第2位で四捨五入
 
       chaseSteps[selectedStepIndex] = {
         state: state,
         duration: duration,
         fade: fade,
+        name: name,
+        trigger: trigger,
+        memo: memo,
       };
 
       updateStepListUI();
@@ -1352,13 +1467,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // ステップ追加
   addStepBtn.addEventListener("click", () => {
     const state = captureCurrentState();
-    const duration = parseFloat(chaseDurationInput.value);
-    const fade = parseFloat(chaseFadeInput.value);
+    let duration = parseFloat(chaseDurationInput.value);
+    let fade = parseFloat(chaseFadeInput.value);
+    const name = document.getElementById("chase-step-name").value;
+    const trigger = document.getElementById("chase-step-trigger").value;
+    const memo = document.getElementById("chase-step-memo").value;
+
+    // バリデーションと丸め処理
+    if (isNaN(duration) || duration < 0.01) duration = 0.01;
+    duration = Math.round(duration * 100) / 100; // 小数点第2位で四捨五入
+
+    if (isNaN(fade) || fade < 0) fade = 0;
+    fade = Math.round(fade * 100) / 100; // 小数点第2位で四捨五入
 
     chaseSteps.push({
       state: state,
       duration: duration,
       fade: fade,
+      name: name,
+      trigger: trigger,
+      memo: memo,
     });
 
     updateStepListUI();
@@ -1369,6 +1497,14 @@ document.addEventListener("DOMContentLoaded", () => {
   deleteStepBtn.addEventListener("click", () => {
     if (selectedStepIndex !== -1) {
       chaseSteps.splice(selectedStepIndex, 1);
+
+      // 再生中の場合、インデックスを調整
+      if (isPlaying) {
+        if (selectedStepIndex <= currentStepIndex) {
+          currentStepIndex--;
+        }
+      }
+
       selectedStepIndex = -1;
       updateStepListUI();
       saveChaseToLocalStorage();
@@ -1421,19 +1557,23 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
         }
-        applyState(interpolatedState);
+        applyState(interpolatedState, true);
 
         if (progress < 1) {
           requestAnimationFrame(animateFade);
+        } else {
+          updateParameterDisplay();
         }
       }
       requestAnimationFrame(animateFade);
     } else {
-      applyState(step.state);
+      applyState(step.state, true);
+      updateParameterDisplay();
     }
 
     // 次のステップへのタイマー
-    chaseTimer = setTimeout(playNextStep, step.duration * 1000);
+    const duration = Math.max(step.duration, 0.01); // 最小0.01秒を保証
+    chaseTimer = setTimeout(playNextStep, duration * 1000);
   }
 
   function startChase() {
@@ -1487,6 +1627,49 @@ document.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(url);
   });
 
+  // CSV Export
+  const exportCsvBtn = document.getElementById("export-csv-btn");
+  exportCsvBtn.addEventListener("click", () => {
+    if (chaseSteps.length === 0) {
+      alert("出力するデータがありません");
+      return;
+    }
+
+    // BOM (Byte Order Mark) for Excel to recognize UTF-8
+    const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
+
+    // Header
+    let csvContent = "No,Scene Name,Duration (s),Fade (s),Trigger,Memo\n";
+
+    // Data
+    chaseSteps.forEach((step, index) => {
+      const no = index + 1;
+      // CSVエスケープ処理: ダブルクォートがあれば2つに重ね、全体をダブルクォートで囲む
+      const escape = (str) => {
+        if (!str) return "";
+        return `"${str.toString().replace(/"/g, '""')}"`;
+      };
+
+      const name = escape(step.name);
+      const duration = step.duration;
+      const fade = step.fade;
+      const trigger = escape(step.trigger);
+      const memo = escape(step.memo);
+
+      csvContent += `${no},${name},${duration},${fade},${trigger},${memo}\n`;
+    });
+
+    const blob = new Blob([bom, csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lighting_cue_sheet_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
   // Import
   importChaseBtn.addEventListener("click", () => {
     chaseFileInput.click();
@@ -1515,6 +1698,24 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsText(file);
     // inputをリセットして同じファイルを再読み込み可能にする
     chaseFileInput.value = "";
+  });
+
+  // 2D/3D View Toggle
+  const viewToggleBtn = document.getElementById("view-toggle-btn");
+  const sceneElement = document.querySelector(".scene");
+  let is2DView = false;
+
+  viewToggleBtn.addEventListener("click", () => {
+    is2DView = !is2DView;
+    if (is2DView) {
+      sceneElement.classList.add("top-view");
+      viewToggleBtn.innerHTML = '<span class="icon">🧊</span> 3D View';
+      viewToggleBtn.classList.add("active");
+    } else {
+      sceneElement.classList.remove("top-view");
+      viewToggleBtn.innerHTML = '<span class="icon">👁️</span> 2D View';
+      viewToggleBtn.classList.remove("active");
+    }
   });
 
   // --- 初期化処理の実行 ---

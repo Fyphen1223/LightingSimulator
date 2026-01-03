@@ -75,6 +75,9 @@
       <div class="tab-nav">
         <button class="tab-btn active" data-tab="main-tab">MASTER</button>
         <button class="tab-btn" data-tab="chase-tab">CHASE</button>
+        <button class="view-toggle-btn" id="view-toggle-btn">
+          <span class="icon">👁️</span> 2D View
+        </button>
       </div>
       <div class="controls tab-content active" id="main-tab">
         <!-- Master & Chase Control -->
@@ -854,6 +857,63 @@
             </div>
           </div>
 
+          <!-- キューシート用メタデータ -->
+          <div
+            class="metadata-section"
+            style="
+              margin-bottom: 10px;
+              padding: 10px;
+              background: #252525;
+              border-radius: 4px;
+            "
+          >
+            <div style="margin-bottom: 5px">
+              <input
+                type="text"
+                id="chase-step-name"
+                placeholder="シーン名 (例: オープニング)"
+                style="
+                  width: 100%;
+                  box-sizing: border-box;
+                  padding: 5px;
+                  background: #333;
+                  color: #fff;
+                  border: 1px solid #555;
+                  margin-bottom: 5px;
+                "
+              />
+              <input
+                type="text"
+                id="chase-step-trigger"
+                placeholder="きっかけ (例: M開始と同時)"
+                style="
+                  width: 100%;
+                  box-sizing: border-box;
+                  padding: 5px;
+                  background: #333;
+                  color: #fff;
+                  border: 1px solid #555;
+                  margin-bottom: 5px;
+                "
+              />
+              <textarea
+                id="chase-step-memo"
+                placeholder="メモ (例: 明るめに)"
+                rows="2"
+                style="
+                  width: 100%;
+                  box-sizing: border-box;
+                  padding: 5px;
+                  background: #333;
+                  color: #fff;
+                  border: 1px solid #555;
+                  resize: vertical;
+                  font-family: inherit;
+                "
+              ></textarea>
+            </div>
+          </div>
+
           <!-- ステップ操作 -->
           <div class="step-actions">
             <button id="add-step-btn" class="action-btn add-btn">
@@ -870,9 +930,10 @@
           <!-- ステップリスト -->
           <div class="step-list-wrapper">
             <div class="step-list-header">
-              <span>#</span>
-              <span>Time</span>
-              <span>Fade</span>
+              <span style="flex: 0 0 30px">#</span>
+              <span style="flex: 1">Name</span>
+              <span style="flex: 0 0 50px">Time</span>
+              <span style="flex: 0 0 50px">Fade</span>
             </div>
             <ul id="step-list" class="step-list">
               <!-- ステップがここに追加される -->
@@ -880,17 +941,24 @@
           </div>
 
           <!-- ファイル操作 -->
-          <div class="file-actions">
-            <button id="import-chase-btn" class="file-btn">
-              Import .chase
+          <div class="file-actions" style="flex-wrap: wrap; gap: 5px">
+            <button id="import-chase-btn" class="file-btn" style="flex: 1">
+              Import
             </button>
-            <button id="export-chase-btn" class="file-btn">
-              Export .chase
+            <button id="export-chase-btn" class="file-btn" style="flex: 1">
+              Export
+            </button>
+            <button
+              id="export-csv-btn"
+              class="file-btn"
+              style="flex: 1; background-color: #2d5a2d"
+            >
+              CSV出力
             </button>
             <input
               type="file"
               id="chase-file-input"
-              accept=".chase"
+              accept=".chase,.json"
               style="display: none"
             />
           </div>
